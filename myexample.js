@@ -27,26 +27,27 @@ function find_diamonds(screen){
 	return diamonds;
 };
 
-function get_nearest_diamond(start, diamonds, graph){
+function get_shortest_path(start, diamonds, graph){
 	var min_dist = 999999;
-	var nearest_diamond = undefined;
+	var shortest_path = undefined;
 	for (let i = 0; i < diamonds.length; i++)
 	{
     var diamond = diamonds[i];
     if (graph.grid[diamond.x][diamond.y].weight == 0) continue;
-		var dist = Math.abs(start.x-diamond.x) + Math.abs(start.y-diamond.y);
-				
-		//var dist = 1;
-		if (dist < min_dist)
+
+    var end = graph.grid[diamond.x][diamond.y];
+    var path = astar.search(graph, start, end);  
+
+		if (path.length > 0 && path.length < min_dist)
 		{			
-			min_dist = dist;
-			nearest_diamond = diamond;
+			min_dist = path.length;
+			shortest_path = path;
 		}
 	}	
-	return nearest_diamond;
+	return shortest_path;
 };
 
-function init_graph(screen, self_x, self_y)
+function init_graph(screen)
 {
   var arr = []; 
 	for (let x = 0; x<screen_height; x++)
@@ -74,7 +75,8 @@ function init_graph(screen, self_x, self_y)
 	return new Graph(arr);
 };
 
-function afraid_of_butterfly(screen, graph)
+
+function afraid_of_butterfly(screen, graph, self)
 {
     var butt_coords = [];
     for (let x = 0; x<screen_height; x++)
@@ -87,13 +89,31 @@ function afraid_of_butterfly(screen, graph)
       }
     }   
 
-    for (let i = 0; i < butt_coords.length; ++i)
-      {
-        set_butt_weights(screen, graph, butt_coords[i].x, butt_coords[i].y);
-      }
-
-
+    for (let i = 0; i < butt_coords.length; ++i){
+      //set_butt_weights(screen, graph, butt_coords[i].x, butt_coords[i].y);
+      set_butt_weights2(screen, graph, butt_coords[i].x, butt_coords[i].y, self);
+    }
 }
+
+function get_path_length(x1, y1, x2, y2){
+  return Math.abs(x1 - x2) + Math.abs(y1-y2);
+}
+
+function set_butt_weights2(screen, graph, x, y, self){
+  if (get_path_length(self.x - 1, self.y, x, y) <= 2 ){    
+    graph.grid[self.x - 1][self.y].weight = 0;        
+  }
+  if (get_path_length(self.x + 1, self.y, x, y) <= 2 ){    
+    graph.grid[self.x + 1][self.y].weight = 0;        
+  }
+  if (get_path_length(self.x, self.y - 1, x, y) <= 2 ){    
+    graph.grid[self.x][self.y - 1].weight = 0;        
+  }
+  if (get_path_length(self.x, self.y + 1, x, y) <= 2 ){    
+    graph.grid[self.x][self.y + 1].weight = 0;        
+  }
+}
+
 
 function set_butt_weights(screen, graph, x, y)
 {
@@ -235,16 +255,17 @@ exports.play = function*(screen){
 
     screen_height = screen.length - 1;
   
-    let {x, y} = find_player(screen);
- 
+    let {x, y} = find_player(screen);    
 
-		var graph = init_graph(screen, x, y);
+    var graph = init_graph(screen);
+
+     var start = graph.grid[x][y];
         
     //Чтобы на нас не упал камень
     afraid_of_stones(screen, graph, x, y)
     
     //боимся бабочек
-    afraid_of_butterfly(screen, graph);   
+    afraid_of_butterfly(screen, graph, start);   
 
     console.log("\n");
     for (let i = 0; i<screen_height; i++){
@@ -261,46 +282,45 @@ exports.play = function*(screen){
        console.log(res);
     }
 	
-		var start = graph.grid[x][y];
+	
 		 
     var diamonds = find_diamonds(screen);
 
-    var nearest_diamond = get_nearest_diamond(start, diamonds, graph);
-    
-    var noWay = false;
-     if (nearest_diamond == undefined){
-      console.log("No appropriate diamonds 1");
-      noWay = true;
+    var shortest_path = get_shortest_path(start, diamonds, graph);
+       
+    if (shortest_path == undefined){
+      console.log("No appropriate diamonds 1");    
+      yield '';  
     }
-    else{    
-      var end = graph.grid[nearest_diamond.x][nearest_diamond.y];
+    // else{    
+    //   var end = graph.grid[nearest_diamond.x][nearest_diamond.y];
     
-      var result = astar.search(graph, start, end);   
-      while (result.length == 0 && diamonds.length > 0){
-        //console.log(diamonds.length);
+    //   var result = astar.search(graph, start, end);   
+    //   while (result.length == 0 && diamonds.length > 0){
+    //     //console.log(diamonds.length);
 
-        var index = diamonds.indexOf(nearest_diamond);
-        diamonds.splice(index, 1);
-        nearest_diamond = get_nearest_diamond(start, diamonds, graph);
+    //     var index = diamonds.indexOf(nearest_diamond);
+    //     diamonds.splice(index, 1);
+    //     nearest_diamond = get_nearest_diamond(start, diamonds, graph);
 
-        if (nearest_diamond == undefined){
-          console.log("No appropriate diamonds 2");
-          noWay = true;
-          break;
-        }
+    //     if (nearest_diamond == undefined){
+    //       console.log("No appropriate diamonds 2");
+    //       noWay = true;
+    //       break;
+    //     }
 
-        end = graph.grid[nearest_diamond.x][nearest_diamond.y];
-        result = astar.search(graph, start, end);   
-      }		
-    }    
+    //     end = graph.grid[nearest_diamond.x][nearest_diamond.y];
+    //     result = astar.search(graph, start, end);   
+    //   }		
+    // }    
        
     
-    if (noWay){
-      yield '';
-    }
+    // if (noWay){
+    //   yield '';
+    // }
     else{
       var move= '';
-      var first_step = result[0];
+      var first_step = shortest_path[0];
       if (first_step.y < y)
         move= 'l';
       else if (first_step.y > y)
