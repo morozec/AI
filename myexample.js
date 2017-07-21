@@ -34,9 +34,11 @@ function find_diamonds(screen, find_butts){
 	return diamonds;
 };
 
-function get_shortest_path(start, diamonds, graph){
+function get_shortest_path(start, diamonds, graph, nearest_corner){
 	var min_dist = 999999;
-	var shortest_path = undefined;
+  var shortest_path = undefined; 
+ 
+
 	for (let i = 0; i < diamonds.length; i++)
 	{
     var diamond = diamonds[i];
@@ -50,7 +52,34 @@ function get_shortest_path(start, diamonds, graph){
 			min_dist = path.length;
 			shortest_path = path;
 		}
-	}	
+  }	
+  
+  if (shortest_path == undefined){
+    return shortest_path;
+  }
+
+  min_dist = 999999; 
+  var target = shortest_path[shortest_path.length - 1];
+  for (let i = 0; i < diamonds.length; i++)
+	{
+    var diamond = diamonds[i];
+    if (graph.grid[diamond.x][diamond.y].weight == 0) continue;    
+
+    if (nearest_corner == CORNER_TYPE.LT && (diamond.x >= target.x || diamond.y >= target.y )) continue;
+    if (nearest_corner == CORNER_TYPE.LD && (diamond.x <= target.x || diamond.y >= target.y )) continue;
+    if (nearest_corner == CORNER_TYPE.RT && (diamond.x >= target.x || diamond.y <= target.y )) continue;
+    if (nearest_corner == CORNER_TYPE.RD && (diamond.x <= target.x || diamond.y <= target.y )) continue;
+
+    var end = graph.grid[diamond.x][diamond.y];
+    var path = astar.search(graph, start, end);  
+
+		if (path.length > 0 && path.length < min_dist)
+		{			
+			min_dist = path.length;
+			shortest_path = path;
+		}
+  }	
+
 	return shortest_path;
 };
 
@@ -102,8 +131,17 @@ function afraid_of_butterfly(screen, graph, self)
     }
 }
 
-function get_path_length(x1, y1, x2, y2){
+function get_manhatten_dist(x1, y1, x2, y2){
   return Math.abs(x1 - x2) + Math.abs(y1-y2);
+}
+
+function get_nearest_corner(self_x, self_y, screen){
+  if (self_x < screen_height / 2){
+    return self_y < screen[self_x].length / 2 ? CORNER_TYPE.LT : CORNER_TYPE.RT;
+  }
+  else {
+    return self_y < screen[self_x].length / 2 ? CORNER_TYPE.LD : CORNER_TYPE.RD;
+  }
 }
 
 function set_butt_weights2(screen, graph, x, y, self){
@@ -112,20 +150,20 @@ function set_butt_weights2(screen, graph, x, y, self){
     graph.grid[x][y].weight = 0; //сама бабочка непроходима, если она уже открыта
   }
 
-  if (get_path_length(get_path_length(self.x, self.y, x, y) == 1)){//если рядом с бабочком, все сос. точки проходимы
+  if (get_manhatten_dist(get_manhatten_dist(self.x, self.y, x, y) == 1)){//если рядом с бабочком, все сос. точки проходимы
     return;
   }
 
-  if (get_path_length(self.x - 1, self.y, x, y) <= 2 ){    
+  if (get_manhatten_dist(self.x - 1, self.y, x, y) <= 2 ){    
     graph.grid[self.x - 1][self.y].weight = 0;        
   }
-  if (get_path_length(self.x + 1, self.y, x, y) <= 2 ){    
+  if (get_manhatten_dist(self.x + 1, self.y, x, y) <= 2 ){    
     graph.grid[self.x + 1][self.y].weight = 0;        
   }
-  if (get_path_length(self.x, self.y - 1, x, y) <= 2 ){    
+  if (get_manhatten_dist(self.x, self.y - 1, x, y) <= 2 ){    
     graph.grid[self.x][self.y - 1].weight = 0;        
   }
-  if (get_path_length(self.x, self.y + 1, x, y) <= 2 ){    
+  if (get_manhatten_dist(self.x, self.y + 1, x, y) <= 2 ){    
     graph.grid[self.x][self.y + 1].weight = 0;        
   }
 }
@@ -281,12 +319,18 @@ exports.play = function*(screen){
     var graph = init_graph(screen);
 
      var start = graph.grid[x][y];
+
+     var nearest_corner = get_nearest_corner(x, y, screen);
         
     //Чтобы на нас не упал камень
     afraid_of_stones(screen, graph, x, y)
     
     //боимся бабочек
     afraid_of_butterfly(screen, graph, start);   
+
+    var diamonds = find_diamonds(screen, true);
+
+    var shortest_path = get_shortest_path(start, diamonds, graph, nearest_corner);
 
     console.log("\n");
     for (let i = 0; i<screen_height; i++){
@@ -295,20 +339,18 @@ exports.play = function*(screen){
         if (x == i && y == j){
           res += "A";
         }
-        else{
+        // else if (shortest_path != undefined && shortest_path[shortest_path.length -1].x == i && shortest_path[shortest_path.length -1].y == j) {
+        //   res += "-";
+        // }
+        else {
           res += graph.grid[i][j].weight;
         }
        
       }
        console.log(res);
-    }
-	
-	
-		 
-    var diamonds = find_diamonds(screen, true);
-
-    var shortest_path = get_shortest_path(start, diamonds, graph);
-       
+    }		 
+  
+    
     if (shortest_path == undefined){
       console.log("No appropriate diamonds 1");    
       yield '';  
@@ -755,6 +797,13 @@ BinaryHeap.prototype = {
 
 var stones = [];
 var screen_height = 0;
+
+var CORNER_TYPE={
+  LD:1,
+  LT:2,
+  RT:3,
+  RD:4
+};
 
 //  var screen = 
 //  ["A     ", 
