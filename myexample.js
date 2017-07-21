@@ -12,7 +12,7 @@ function find_player(screen){
     }
 };
 
-function find_diamonds(screen){   
+function find_diamonds(screen, find_butts){   
 	var diamonds = [];
 	for (let x = 0; x<screen_height; x++)
     {		
@@ -21,6 +21,13 @@ function find_diamonds(screen){
         {
           if (screen[x][y] === '*'){
             diamonds.push({x, y});           
+          }
+          else if (find_butts){
+            if ('/-\\'.includes(screen[x][y])){
+              if (is_closed_butt(screen, x, y, [])){
+                diamonds.push({x, y});
+              }
+            }
           }
         }		
     }  
@@ -100,6 +107,15 @@ function get_path_length(x1, y1, x2, y2){
 }
 
 function set_butt_weights2(screen, graph, x, y, self){
+
+  if (!is_closed_butt(screen, x, y, [])){
+    graph.grid[x][y].weight = 0; //сама бабочка непроходима, если она уже открыта
+  }
+
+  if (get_path_length(get_path_length(self.x, self.y, x, y) == 1)){//если рядом с бабочком, все сос. точки проходимы
+    return;
+  }
+
   if (get_path_length(self.x - 1, self.y, x, y) <= 2 ){    
     graph.grid[self.x - 1][self.y].weight = 0;        
   }
@@ -115,45 +131,50 @@ function set_butt_weights2(screen, graph, x, y, self){
 }
 
 
-function set_butt_weights(screen, graph, x, y)
+function is_closed_butt(screen, x, y, checked_cells)
 {
-  graph.grid[x][y].weight = 0;
+  //console.log(checked_cells.length);
 
-  if (y > 0 && graph.grid[x][y - 1].weight != 0){
-    if (screen[x][y-1] != ' '){
-      graph.grid[x][y-1].weight = 0;
-    }
-    else{
-      set_butt_weights(screen, graph, x, y-1);
-    }
+  checked_cells.push({x, y});
+
+  if ('A'.includes(screen[x][y])) return false;
+  if ('*:+#O'.includes(screen[x][y])) return true;
+  
+  //иначе пустая ячейка
+  var is_closed = true;
+
+  var new_x = x;
+  var new_y = y-1;
+
+  var index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
+  
+  if (index == -1){ //еще не проверяли
+    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
   }
 
-  if (y < screen[x].length - 1 && graph.grid[x][y + 1].weight != 0){
-    if (screen[x][y+1] != ' '){
-      graph.grid[x][y+1].weight = 0;
-    }
-    else{
-      set_butt_weights(screen, graph, x, y+1);
-    }
-  }
-    
-  if (x > 0 && graph.grid[x-1][y].weight != 0){
-    if (screen[x-1][y] != ' '){
-      graph.grid[x-1][y].weight = 0;
-    }
-    else{
-      set_butt_weights(screen, graph, x-1, y);
-    }
+  new_x = x;
+  new_y = y+1;
+  index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
+  if (index == -1){ //еще не проверяли
+    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
   }
 
-  if (x < screen_height - 1 && graph.grid[x+1][y].weight != 0){
-    if (screen[x+1][y] != ' '){
-      graph.grid[x+1][y].weight = 0;
-    }
-    else{
-      set_butt_weights(screen, graph, x+1, y);
-    }
-  }  
+  new_x = x-1;
+  new_y = y;
+  index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
+  if (index == -1){ //еще не проверяли
+    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
+  }
+
+  new_x = x+1;
+  new_y = y;
+  index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
+  if (index == -1){ //еще не проверяли
+    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
+  }
+
+  return is_closed;
+ 
 }
 
 function afraid_of_stones(screen, graph, self_x, self_y){ 
@@ -249,7 +270,7 @@ function afraid_of_stones(screen, graph, self_x, self_y){
 }
 
 
-
+//function play(screen){
 exports.play = function*(screen){
     while (true){			   
 
@@ -284,7 +305,7 @@ exports.play = function*(screen){
 	
 	
 		 
-    var diamonds = find_diamonds(screen);
+    var diamonds = find_diamonds(screen, true);
 
     var shortest_path = get_shortest_path(start, diamonds, graph);
        
@@ -292,32 +313,7 @@ exports.play = function*(screen){
       console.log("No appropriate diamonds 1");    
       yield '';  
     }
-    // else{    
-    //   var end = graph.grid[nearest_diamond.x][nearest_diamond.y];
     
-    //   var result = astar.search(graph, start, end);   
-    //   while (result.length == 0 && diamonds.length > 0){
-    //     //console.log(diamonds.length);
-
-    //     var index = diamonds.indexOf(nearest_diamond);
-    //     diamonds.splice(index, 1);
-    //     nearest_diamond = get_nearest_diamond(start, diamonds, graph);
-
-    //     if (nearest_diamond == undefined){
-    //       console.log("No appropriate diamonds 2");
-    //       noWay = true;
-    //       break;
-    //     }
-
-    //     end = graph.grid[nearest_diamond.x][nearest_diamond.y];
-    //     result = astar.search(graph, start, end);   
-    //   }		
-    // }    
-       
-    
-    // if (noWay){
-    //   yield '';
-    // }
     else{
       var move= '';
       var first_step = shortest_path[0];
@@ -760,11 +756,12 @@ BinaryHeap.prototype = {
 var stones = [];
 var screen_height = 0;
 
-//  var screen = ["A     ", 
+//  var screen = 
+//  ["A     ", 
 //   " :::: ",
 //   " :/ : ",
-//   " :::: ",
-//   "A     *"]; 
+//   " :: : ",
+//   "   + *"]; 
  
 //  play(screen);
 
