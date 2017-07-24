@@ -12,27 +12,59 @@ function find_player(screen){
     }
 };
 
-function find_diamonds(screen, find_butts){   
+function find_targets(target_types, screen){   
 	var diamonds = [];
 	for (let x = 0; x<screen_height; x++)
     {		
         let row = screen[x];        
         for (let y = 0; y<row.length; y++)
         {
-          if (screen[x][y] === '*'){
+          if (target_types.includes(screen[x][y])){
             diamonds.push({x, y});           
           }
-          else if (find_butts){
-            if ('/-\\'.includes(screen[x][y])){
-              if (is_closed_butt(screen, x, y, [])){
-                diamonds.push({x, y});
-              }
-            }
-          }
+          // else if (find_butts){
+          //   if ('/-\\'.includes(screen[x][y])){
+          //     if (is_closed_butt(screen, x, y, [])){
+          //       diamonds.push({x, y});
+          //     }
+          //   }
+          // }
         }		
     }  
 	return diamonds;
 };
+
+function get_path_to_kill_butt(butts, screen, graph, self){
+  var min_dist = 999999;
+  var closest_butt = undefined;
+  butts.forEach(function(butt) {
+    var dist = get_manhatten_dist(self.x, self.y, butt.x, butt.y);
+    if (dist < min_dist){
+      min_dist = dist;
+      closest_butt = butt; 
+    }
+  }, this);
+
+  if (closest_butt == undefined) return undefined;
+
+  var x = closest_butt.x - 1;
+  var y = closest_butt.y;
+  var butt_kill_path = undefined;
+  var min_path_length = 999999;
+  while (x > 0){
+    if (screen[x][y]== ':'){
+      var end = graph.grid[x][y];
+      var path = astar.search(graph, self, end);  
+      if (path.length > 0 && path.length < min_path_length){       
+        butt_kill_path = path;      
+        min_path_length = path.length;  
+      }      
+    }
+    x--;      
+  }
+
+  return butt_kill_path;
+}
 
 function get_shortest_path(start, diamonds, graph, nearest_corner){
 	var min_dist = 999999;
@@ -54,7 +86,8 @@ function get_shortest_path(start, diamonds, graph, nearest_corner){
 		}
   }	
   
-  if (shortest_path == undefined){
+  //здесь начинаются пляски с траекторией
+  if (shortest_path == undefined || nearest_corner == undefined){
     return shortest_path;
   }
 
@@ -98,7 +131,7 @@ function init_graph(screen)
         arrRow.push(0);
       }
       else if ('O'.includes(screen[x][y])){             
-        arrRow.push(1); //пока помечаем проходимым
+        arrRow.push(0); //пока помечаем непроходимым
       }  
       else {     
         console.log("Unknown symbol");
@@ -112,22 +145,11 @@ function init_graph(screen)
 };
 
 
-function afraid_of_butterfly(screen, graph, self)
-{
-    var butt_coords = [];
-    for (let x = 0; x<screen_height; x++)
-    {	
-      let row = screen[x];
-      for (let y = 0; y<row.length; y++)
-      {
-        if ('|/-\\'.includes(screen[x][y])) //бабочка        
-          butt_coords.push({x,y});
-      }
-    }   
-
-    for (let i = 0; i < butt_coords.length; ++i){
+function afraid_of_butterfly(screen, graph, self, butts)
+{ 
+    for (let i = 0; i < butts.length; ++i){
       //set_butt_weights(screen, graph, butt_coords[i].x, butt_coords[i].y);
-      set_butt_weights2(screen, graph, butt_coords[i].x, butt_coords[i].y, self);
+      set_butt_weights2(screen, graph, butts[i], self);
     }
 }
 
@@ -144,11 +166,14 @@ function get_nearest_corner(self_x, self_y, screen){
   }
 }
 
-function set_butt_weights2(screen, graph, x, y, self){
+function set_butt_weights2(screen, graph, butt, self){
 
-  if (!is_closed_butt(screen, x, y, [])){
+  var x = butt.x;
+  var y = butt.y;
+
+  if (!is_closed_butt(butt)){
     graph.grid[x][y].weight = 0; //сама бабочка непроходима, если она уже открыта
-  }
+  } 
 
   if (get_manhatten_dist(get_manhatten_dist(self.x, self.y, x, y) == 1)){//если рядом с бабочком, все сос. точки проходимы
     return;
@@ -168,8 +193,19 @@ function set_butt_weights2(screen, graph, x, y, self){
   }
 }
 
+function check_closed_butts(screen){ 
+  for (var i = close_butts.length - 1; i >= 0; --i){
+    if (!is_closed_butt_tmp(screen, close_butts[i].x, close_butts[i].y, [])){
+      close_butts.splice(i, 1);
+    }
+  }  
+}
 
-function is_closed_butt(screen, x, y, checked_cells)
+function is_closed_butt(butt){
+  return close_butts.findIndex(b => b.x == butt.x && b.y == butt.y) > -1;
+}
+
+function is_closed_butt_tmp(screen, x, y, checked_cells)
 {
   //console.log(checked_cells.length);
 
@@ -187,28 +223,28 @@ function is_closed_butt(screen, x, y, checked_cells)
   var index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
   
   if (index == -1){ //еще не проверяли
-    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
+    is_closed = is_closed &&  is_closed_butt_tmp(screen, new_x, new_y, checked_cells);    
   }
 
   new_x = x;
   new_y = y+1;
   index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
   if (index == -1){ //еще не проверяли
-    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
+    is_closed = is_closed &&  is_closed_butt_tmp(screen, new_x, new_y, checked_cells);    
   }
 
   new_x = x-1;
   new_y = y;
   index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
   if (index == -1){ //еще не проверяли
-    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
+    is_closed = is_closed &&  is_closed_butt_tmp(screen, new_x, new_y, checked_cells);    
   }
 
   new_x = x+1;
   new_y = y;
   index = checked_cells.findIndex(p => p.x == new_x && p.y == new_y);
   if (index == -1){ //еще не проверяли
-    is_closed = is_closed &&  is_closed_butt(screen, new_x, new_y, checked_cells);    
+    is_closed = is_closed &&  is_closed_butt_tmp(screen, new_x, new_y, checked_cells);    
   }
 
   return is_closed;
@@ -273,8 +309,8 @@ function afraid_of_stones(screen, graph, self_x, self_y){
       var canMoveRight = self_x == x && self_y - y == -1 && 
         y < screen[x].length-1 && screen[x][y+1] == ' ';
      
-      if (!canMoveLeft && !canMoveRight){
-        graph.grid[x][y].weight = 0;  
+      if (canMoveLeft || canMoveRight){
+        graph.grid[x][y].weight = 1;  
       }      
       
     }
@@ -307,6 +343,53 @@ function afraid_of_stones(screen, graph, self_x, self_y){
   stones = new_stones; 
 }
 
+function set_trap_diamonds(diamonds, screen, graph){
+  for (var i = 0; i < diamonds.length; ++i){
+    var diamond = diamonds[i];
+    if (is_trap(diamond, screen)){
+      graph.grid[diamond.x][diamond.y].weight = 0;
+    }
+  }
+}
+
+function is_trap(diamond, screen){
+  var x = diamond.x;
+  var y = diamond.y;
+
+  if (x <= 1) return false;
+  if (!' *:'.includes(screen[x-1][y])) return false;
+
+  x -=2;
+  y = y;
+
+  while (true){
+    if (' '.includes(screen[x][y])){
+      x--;
+    }
+    else if ('*O'.includes(screen[x][y])){
+      break;
+    }
+    else {
+      return false;
+    }
+  }
+
+  x = diamond.x;
+  y = diamond.y;
+
+  while (' *:'.includes(screen[x][y])){
+    if (' :'.includes(screen[x][y-1])) return false;
+    if ('O'.includes(screen[x][y-1]) && y >= 2 && ' '.includes(screen[x][y-2])) return false;
+
+    if (' :'.includes(screen[x][y+1])) return false; 
+    if ('O'.includes(screen[x][y+1]) && y <= screen[x].length - 3 && ' '.includes(screen[x][y+2])) return false;
+    
+    x++;
+  }
+
+  return true;
+}
+
 
 //function play(screen){
 exports.play = function*(screen){
@@ -318,46 +401,69 @@ exports.play = function*(screen){
 
     var graph = init_graph(screen);
 
-     var start = graph.grid[x][y];
+    var start = graph.grid[x][y];
 
-     var nearest_corner = get_nearest_corner(x, y, screen);
+    var nearest_corner = get_nearest_corner(x, y, screen);
         
     //Чтобы на нас не упал камень
     afraid_of_stones(screen, graph, x, y)
     
     //боимся бабочек
-    afraid_of_butterfly(screen, graph, start);   
-
-    var diamonds = find_diamonds(screen, true);
-
-    var shortest_path = get_shortest_path(start, diamonds, graph, nearest_corner);
-
+    var butts = find_targets('/|-\\', screen);
+    if (close_butts == undefined) close_butts = butts;
+    check_closed_butts(screen);
     console.log("\n");
-    for (let i = 0; i<screen_height; i++){
-      var res ="";
-      for (let j = 0; j<screen[i].length; j++) {
-        if (x == i && y == j){
-          res += "A";
-        }
-        // else if (shortest_path != undefined && shortest_path[shortest_path.length -1].x == i && shortest_path[shortest_path.length -1].y == j) {
-        //   res += "-";
-        // }
-        else {
-          res += graph.grid[i][j].weight;
-        }
-       
-      }
-       console.log(res);
-    }		 
+    console.log(close_butts.length);
+    afraid_of_butterfly(screen, graph, start, butts);   
+
+    var shortest_path = get_shortest_path(start, close_butts, graph);
+
+    var diamonds = find_targets('*', screen);
+    set_trap_diamonds(diamonds, screen, graph);
+
+    //var shortest_path = undefined;
+    if (shortest_path == undefined){
+      shortest_path = get_shortest_path(start, diamonds, graph);
+    }   
   
     
     if (shortest_path == undefined){
       console.log("No appropriate diamonds 1");    
-      yield '';  
+      
+      var shortest_path = get_path_to_kill_butt(butts, screen, graph, start);     
+
+      if (shortest_path == undefined){      
+        diamonds = find_targets(':', screen);
+        set_trap_diamonds(diamonds, screen, graph);
+        var shortest_path = get_shortest_path(start, diamonds, graph);
+      }
     }
-    
-    else{
-      var move= '';
+
+
+    if (shortest_path != undefined){
+
+      console.log("\n");
+      for (let i = 0; i<screen_height; i++){
+        var res ="";
+        for (let j = 0; j<screen[i].length; j++) {
+          if (x == i && y == j){
+            res += "A";
+          }
+          else if (shortest_path.findIndex(p=> p.x == i && p.y == j) > -1){
+            res += "-";
+          }       
+          else {
+            res += graph.grid[i][j].weight;
+          }
+        
+        }
+        console.log(res);
+      }		 
+    }
+
+    var move= '';
+    if (shortest_path != undefined){
+      
       var first_step = shortest_path[0];
       if (first_step.y < y)
         move= 'l';
@@ -367,9 +473,12 @@ exports.play = function*(screen){
         move= 'u';
       else if (first_step.x > x)
         move= 'd';	
-      else throw "Strange move";
-      yield move;
+      else throw "Strange move";      
     }
+    yield move;
+
+
+
 
     
     // console.clear();
@@ -797,6 +906,7 @@ BinaryHeap.prototype = {
 
 var stones = [];
 var screen_height = 0;
+var close_butts=undefined;
 
 var CORNER_TYPE={
   LD:1,
