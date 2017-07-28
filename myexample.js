@@ -59,126 +59,134 @@ function get_path_to_kill_butt(butts, screen, graph, self){
   return butt_kill_path;
 }
 
+function get_vector_length(v){
+  return Math.sqrt(v.x * v.x + v.y * v.y);
+}
+
+function get_vectors_angle(a, b){
+  var cosFi = (a.x * b.x + a.y + b.y) / get_vector_length(a) / get_vector_length(b);
+  var fi = Math.acos(cosFi);
+  return fi;
+}
+
 //Ищем ближаший возможный путь от стартовой точки до 1 из целей
 function get_shortest_path(start, targets, graph, use_delone){
  
 
-  if (use_delone){
+  // if (use_delone){
    
-    //собираем список вершин для Делоне
-    var vertices = [];    
-    targets.forEach(function(target) {
-      vertices.push([target.x, target.y]);
-    }, this);
-    //добавялем в список вершин себя
-    vertices.push([start.x, start.y]);
+  //   //собираем список вершин для Делоне
+  //   var vertices = [];    
+  //   targets.forEach(function(target) {
+  //     vertices.push([target.x, target.y]);
+  //   }, this);
+  //   //добавялем в список вершин себя
+  //   vertices.push([start.x, start.y]);
 
-    //разбиваем результат на треугольники
-    var delone = Delaunay.triangulate(vertices);
+  //   //разбиваем результат на треугольники
+  //   var delone = Delaunay.triangulate(vertices);
      
-    var triangles = [];
-    var counter = 0;
-    while (counter < delone.length){
-      var triangle = delone.slice(counter, counter + 3);
-      triangles.push(triangle);
-      counter += 3;      
-    }
+  //   var triangles = [];
+  //   var counter = 0;
+  //   while (counter < delone.length){
+  //     var triangle = delone.slice(counter, counter + 3);
+  //     triangles.push(triangle);
+  //     counter += 3;      
+  //   }    
 
-    // while (delone.length > 0){
-    //   var triangle = delone.splice(counter, counter + 3);
-    //   triangles.push(triangle);
-    //   counter += 3;      
-    // }
-
-    // console.log("\n" + delone.length);
-    // console.log("\n" + triangles.length);
-
-    
-
-    //ищем треугольники, в которые входим мы
-    var my_triangles = [];
-    triangles.forEach(function(triangle) {
-      if (triangle.indexOf(vertices.length - 1) > -1){
-        my_triangles.push(triangle);
-      }
-    }, this);
-    
-    console.log("\n" + my_triangles);
-
-    //ищем точки, которые вхожят в треугольники, в которые входимы мы
-    var my_triangles_points = [];
-    my_triangles.forEach(function(triangle) {
-      triangle.forEach(function(number) {
-        if (number != vertices.length - 1 && my_triangles_points.indexOf(number) == -1){
-          my_triangles_points.push(number);
-        }
-      }, this);
-    }, this);
-    //console.log("\n" + my_triangles_points);
-
+  //   //ищем треугольники, в которые входим мы
+  //   var my_triangles = [];
+  //   triangles.forEach(function(triangle) {
+  //     if (triangle.indexOf(vertices.length - 1) > -1){
+  //       my_triangles.push(triangle);
+  //     }
+  //   }, this); 
    
+  //   //ищем точки, которые вхожят в треугольники, в которые входимы мы
+  //   var my_triangles_points = [];
+  //   my_triangles.forEach(function(triangle) {
+  //     triangle.forEach(function(number) {
+  //       if (number != vertices.length - 1 && my_triangles_points.indexOf(number) == -1){
+  //         my_triangles_points.push(number);
+  //       }
+  //     }, this);
+  //   }, this);
+   
+  //   //из найденных точек берем ту, которая в Делоне встречается реже всех (до нее должно быть возможно проложить путь)
+  //   var min_count = 999999;  
+  //   var min_count_path = undefined;
+  //   var max_dist = 0;  
 
-    //из найденных точек берем ту, которая в Делоне встречается реже всех (до нее должно быть возможно проложить путь)
-    var min_count = 999999;  
-    var min_count_path = undefined;
-    for(var i = 0; i < my_triangles_points.length; ++i){
-      var number = my_triangles_points[i];
-      var target = targets[number];
-      if (graph.grid[target.x][target.y].weight == 0) continue;
-      var end = graph.grid[target.x][target.y];
-      var path = astar.search(graph, start, end);  
-      if (path.length == 0) continue;
+  //   for(var i = 0; i < my_triangles_points.length; ++i){
 
-      //берем точку с минильным числом вхождений в триангуляцию - граничную точку    
-      //var count = delone.filter(p => p == number).length;
-      // if (count < min_count){
-      //   min_count = count;
-      //   min_count_path = path;
-      // }  
+  //     var number = my_triangles_points[i];
+  //     var target = targets[number];     
 
-      //2 вариант - брать ближайшую точку к нам
-      if (path.length < min_count){
-        min_count = path.length;
-        min_count_path = path;
-      }  
-    }    
+  //     if (graph.grid[target.x][target.y].weight == 0) continue;
+  //     var end = graph.grid[target.x][target.y];
+  //     var path = astar.search(graph, start, end);  
+  //     if (path.length == 0) continue;
 
-    return min_count_path;
-
-    // var point_counts = {};
-    // var min_count = 999999;      
-
-    // // console.log("\n");
-    
-    // for (var i = 0; i < targets.length; ++i){
+  //     //targets_str += target.x + " " + target.y + "   ";
       
-    //   // if (targets[i].y < 20)
-    //   //   console.log(targets[i].x + " " + targets[i].y + ":                " + count);
 
-    //   var target = targets[i];
-    //   if (graph.grid[target.x][target.y].weight == 0) continue;
-    //   var end = graph.grid[target.x][target.y];
-    //   var path = astar.search(graph, start, end);  
-    //   if (path.length == 0) continue;
+  //     //берем точку с минильным числом вхождений в триангуляцию - граничную точку    
+  //     // var count = delone.filter(p => p == number).length;
+  //     // if (count < min_count){
+  //     //   min_count = count;
+  //     //   min_count_path = path;
+  //     // }  
 
-    //   var count = delone.filter(p => p == i).length;
-    //   point_counts[i] = count;    
+  //     //2 вариант - брать ближайшую точку к нам
+  //     // if (path.length < min_count){
+  //     //   min_count = path.length;
+  //     //   min_count_path = path;
+  //     // }  
 
-    //   if (count < min_count){
-    //     min_count = count;
-    //   }       
-    // }   
+  //     //3 вариант - берем точку, наиболее удаленную от центра
+  //     var dist = get_manhatten_dist(target.x, target.y, screen_height/2, 20);
+  //     if (dist > max_dist){
+  //       max_dist = dist;
+  //       min_count_path = path;
+  //     }  
 
-    // for (var i = 0; i < targets.length; ++i){   
-    //   if (point_counts[i] <= min_count + 1){
-    //     new_targets.push(targets[i]);
-    //   }
-    // }  
+  //   }    
+ 
+  //   return min_count_path;      
+  // } 
 
-    // console.log("\n" +min_count +":"  +new_targets.length);
-    
-  } 
 
+  //УГОЛ
+  // var max_angle = 0;
+  // var min_length = 999999;
+  // var angle_shortest_path = undefined;  
+  // var length_shortest_path = undefined;
+  // for (let i = 0; i < targets.length; i++){
+  //   var target = targets[i];
+  //   if (graph.grid[target.x][target.y].weight == 0) continue;
+
+  //   var end = graph.grid[target.x][target.y];
+  //   var path = astar.search(graph, start, end);  
+  //   if (path.length == 0) continue;
+
+  //   var target_vector = {x: target.x - start.x, y: target.y - start.y};
+  //   var center_vector = {x: screen_height / 2 - start.x, y : 20 - start.y};//TODO
+  //   var angle = Math.abs(get_vectors_angle(target_vector, center_vector));
+
+  //   if (angle > Math.PI / 2 && angle > max_angle){
+  //     max_angle = angle;
+  //     angle_shortest_path = path;
+  //   }
+
+  //   if (path.length < min_length){
+  //     min_length = path.length;
+  //     length_shortest_path = path;
+  //   }
+  // }
+
+  // return angle_shortest_path != undefined ? angle_shortest_path : length_shortest_path;
+
+  //Просто ближайшая точка
 	var min_dist = 999999;
   var shortest_path = undefined;  
 
@@ -197,37 +205,8 @@ function get_shortest_path(start, targets, graph, use_delone){
 		}
   }
 
-  return shortest_path;
-  	
-  
-  //здесь начинаются пляски с траекторией с учетом ближайшего угла
-  // if (shortest_path == undefined || nearest_corner == undefined){
-  //   return shortest_path;
-  // }
-
-  // min_dist = 999999; 
-  // var target = shortest_path[shortest_path.length - 1];
-  // for (let i = 0; i < targets.length; i++)
-	// {
-  //   var diamond = targets[i];
-  //   if (graph.grid[diamond.x][diamond.y].weight == 0) continue;    
-
-  //   if (nearest_corner == CORNER_TYPE.LT && (diamond.x >= target.x || diamond.y >= target.y )) continue;
-  //   if (nearest_corner == CORNER_TYPE.LD && (diamond.x <= target.x || diamond.y >= target.y )) continue;
-  //   if (nearest_corner == CORNER_TYPE.RT && (diamond.x >= target.x || diamond.y <= target.y )) continue;
-  //   if (nearest_corner == CORNER_TYPE.RD && (diamond.x <= target.x || diamond.y <= target.y )) continue;
-
-  //   var end = graph.grid[diamond.x][diamond.y];
-  //   var path = astar.search(graph, start, end);  
-
-	// 	if (path.length > 0 && path.length < min_dist)
-	// 	{			
-	// 		min_dist = path.length;
-	// 		shortest_path = path;
-	// 	}
-  // }	
-
-	// return shortest_path;
+  return shortest_path;	
+    
 };
 
 function init_graph(screen, self, is_butt_graph)
@@ -250,14 +229,17 @@ function init_graph(screen, self, is_butt_graph)
           arrRow.push(0);
         }
         else{
+          arrRow.push(0);
           //определяем потенциально подвижный камень          
-          var canMoveLeft = self.x == x && self.y - y == 1 &&
-            y > 0 && screen[x][y-1] == ' ';
+          // var canMoveLeft = self.x == x && self.y - y == 1 &&
+          //   y > 0 && screen[x][y-1] == ' ';
         
-          var canMoveRight = self.x == x && self.y - y == -1 && 
-            y < screen[x].length-1 && screen[x][y+1] == ' ';
+          // var canMoveRight = self.x == x && self.y - y == -1 && 
+          //   y < screen[x].length-1 && screen[x][y+1] == ' ';
         
-          arrRow.push(canMoveLeft || canMoveRight ? 1 : 0);         
+          // arrRow.push(canMoveLeft || canMoveRight ? 1 : 0);        
+          
+          
           
         }       
       }  
@@ -273,6 +255,35 @@ function init_graph(screen, self, is_butt_graph)
 		arr.push(arrRow);
 	}
 	return new Graph(arr);
+}
+
+
+function set_movable_stones_weight(screen, self, graph){
+  	for (let x = 0; x<screen_height; x++)    {		
+      let row = screen[x];
+      for (let y = 0; y<row.length; y++)    {
+        if (screen[x][y]=='O'){
+          graph.grid[x][y].weight = 1;
+          var is_ok_stone = false;
+          var start = graph.grid[self.x][self.y];
+          var end = graph.grid[x][y];
+          var path = astar.search(graph, start, end);
+          if (path.length > 0){
+            var penultimate_x = path.length == 1 ? self.x : path[path.length - 2].x;
+            var penultimate_y = path.length == 1 ? self.y : path[path.length - 2].y;
+            if (penultimate_y < y && screen[x][y+1]==' '){
+              is_ok_stone = true;
+            }
+            else if (penultimate_y > y && screen[x][y-1]==' '){
+              is_ok_stone = true;
+            }
+          }
+          if (!is_ok_stone){
+            graph.grid[x][y].weight = 0;
+          }
+        }
+      }
+    }
 }
 
 //метод назначает нулевые веса точкам, которые в опасной близости от бабочек
@@ -296,20 +307,38 @@ function set_butt_weights2(screen, graph, butt, self, butt_graph){
   }
 
   //Помечаем непроходимыми те точки около себя, до которых бабочка может дойти за 2 шага 
-  var start = graph.grid[x][y];
+  var start = butt_graph.grid[x][y];
  
-  if (astar.search(graph, start, graph.grid[self.x-1][self.y]).length <= 2){
-    graph.grid[self.x - 1][self.y].weight = 0;        
-  }
-  if (astar.search(graph, start, graph.grid[self.x+1][self.y]).length <= 2){    
-    graph.grid[self.x + 1][self.y].weight = 0;        
-  }
-  if (astar.search(graph, start, graph.grid[self.x][self.y-1]).length <= 2){    
-    graph.grid[self.x][self.y - 1].weight = 0;        
-  }
-  if (astar.search(graph, start, graph.grid[self.x][self.y+1]).length <= 2){    
-    graph.grid[self.x][self.y + 1].weight = 0;        
-  }
+    butt_graph.grid[self.x-1][self.y].weight = 1;
+    var up_path = astar.search(butt_graph, start, butt_graph.grid[self.x-1][self.y]);
+    //console.log("\n" + up_path.length);     
+    
+    if (up_path.length > 0 && up_path.length <= 2){
+      graph.grid[self.x - 1][self.y].weight = 0;      
+    }
+  
+
+  butt_graph.grid[self.x+1][self.y].weight = 1;
+    var down_path = astar.search(butt_graph, start, butt_graph.grid[self.x+1][self.y]);
+    if (down_path.length > 0 && down_path.length <= 2){    
+      graph.grid[self.x + 1][self.y].weight = 0;        
+    }
+  
+   
+  butt_graph.grid[self.x][self.y-1].weight = 1;
+    var left_path = astar.search(butt_graph, start, butt_graph.grid[self.x][self.y-1]);
+    if (left_path.length > 0 && left_path.length <= 2){    
+      graph.grid[self.x][self.y - 1].weight = 0;        
+    }
+  
+  
+  butt_graph.grid[self.x][self.y+1].weight = 1;
+    var right_path = astar.search(butt_graph, start, butt_graph.grid[self.x][self.y+1]);
+    if (right_path.length > 0 && right_path.length <= 2){    
+      graph.grid[self.x][self.y + 1].weight = 0;        
+    }
+  
+   
 }
 
 function get_manhatten_dist(x1, y1, x2, y2){
@@ -397,10 +426,10 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
     }
   }
 
-  if (stones.length == 0) {
-    stones = new_stones;
-    return;
-  }
+  // if (stones.length == 0) {
+  //   stones = new_stones;
+  //   return;
+  // }
       
   //ищем падающие камни
   var falling_stones = [];
@@ -414,7 +443,7 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
     //под ним пусто. упадет на этот ход    
     if (screen[x+1][y]==' '){  
       graph.grid[x+1][y].weight = 0;    
-      if(x < screen_height - 2 && screen[x+2][y] != 'A'){
+      if(x < screen_height - 2 && screen[x+2][y] != 'A'){        
         graph.grid[x+2][y].weight = 0;    
       }   
       isFalling = true;   
@@ -434,6 +463,8 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
         graph.grid[x+1][y+1].weight = 0;  
         isFalling = true;          
     }    
+
+    if (stones.length == 0) continue; //1 ход
 
     //падал на прошлом ходу
     var isStableStone = false;
@@ -478,7 +509,7 @@ function is_trap(diamond, screen){
   var y = diamond.y;
 
   if (x <= 1) return false;
-  if (!' *:'.includes(screen[x-1][y])) return false;
+  if (!' *:A'.includes(screen[x-1][y])) return false;
 
   x -=2;
   y = y;
@@ -499,11 +530,11 @@ function is_trap(diamond, screen){
   y = diamond.y;
 
   while (' *:'.includes(screen[x][y])){
-    if (' :'.includes(screen[x][y-1])) return false;
-    if ('O'.includes(screen[x][y-1]) && y >= 2 && ' '.includes(screen[x][y-2])) return false;
+    if (' :A'.includes(screen[x][y-1])) return false;
+    if ('O'.includes(screen[x][y-1]) && y >= 2 && ' A'.includes(screen[x][y-2])) return false;
 
-    if (' :'.includes(screen[x][y+1])) return false; 
-    if ('O'.includes(screen[x][y+1]) && y <= screen[x].length - 3 && ' '.includes(screen[x][y+2])) return false;
+    if (' :A'.includes(screen[x][y+1])) return false; 
+    if ('O'.includes(screen[x][y+1]) && y <= screen[x].length - 3 && ' A'.includes(screen[x][y+2])) return false;
     
     x++;
   }
@@ -511,10 +542,305 @@ function is_trap(diamond, screen){
   return true;
 }
 
+function is_new_ok_targets(targets, graph, start){
+  var is_new=false;
+  targets.forEach(function(target) {
+    if (graph.grid[target.x][target.y].weight == 0) return;
+    var end = graph.grid[target.x][target.y];
+    var path = astar.search(graph, start, end);
+    if (path.length == 0) return;
+
+    var index = ok_targets.findIndex(p => p.x == target.x && p.y == target.y);
+    if (index == -1){
+      is_new = true;      
+    }    
+  }, this);  
+  return is_new;
+}
+
+function build_tsp_way(targets, self, graph, screen){
+  points = [];
+  ok_targets =[];
+  var start = graph.grid[self.x][self.y];
+
+  
+  targets.forEach(function(target) {
+    if (graph.grid[target.x][target.y].weight == 0) return;
+    var end = graph.grid[target.x][target.y];
+    var path = astar.search(graph, start, end);
+    if (path.length == 0) return;
+
+    ok_targets.push(target);
+    points.push(new Point(target.x, target.y));
+  }, this);  
+
+  if (points.length == 0) return undefined;
+  if (points.length == 1){
+    var end = graph.grid[ok_targets[0].x][ok_targets[0].y];   
+    return astar.search(graph, start, end);
+  }
+
+  ok_targets.push(self);
+  points.push(new Point(self.x, self.y));
+  
+  GAInitialize();
+  running = true;
+  draw();
+
+  var self_index = best.indexOf(points.length - 1);
+ 
+  calc_tps_direction(self_index, self, graph);
+  
+  if (is_forward_tsp){
+    tsp_index = self_index < ok_targets.length - 1 ? self_index + 1 : 0;
+  }
+  else{
+    tsp_index = self_index > 0 ? self_index - 1 : ok_targets.length - 1;
+  }
+
+
+  var diamond = ok_targets[best[tsp_index]];   
+  var end = graph.grid[diamond.x][diamond.y]; 
+  var shortest_path = astar.search(graph, start, end);
+  return shortest_path;
+}
+
+function calc_tps_direction(self_index, self, graph){
+  var start = graph.grid[self.x][self.y];
+
+  var next_target = self_index < best.length - 1 ? ok_targets[best[self_index + 1]] : ok_targets[0];
+  var prev_target = self_index > 0 ? ok_targets[best[self_index - 1]] : ok_targets[best[best.length - 1]];
+
+  var next_end = graph.grid[next_target.x][next_target.y];
+  var next_path = astar.search(graph, start, next_end);
+  
+  var prev_end = graph.grid[prev_target.x][prev_target.y];
+  var prev_path = astar.search(graph, start, prev_end);
+  is_forward_tsp = next_path.length < prev_path.length;
+}
+
+function get_path(new_diamonds, self, screen, graph){
+
+  var shortest_path = undefined;
+  var start = graph.grid[self.x][self.y];
+  if (new_diamonds.length == 0 || new_diamonds.length > all_diamonds.length) {
+    //console.log("\nNEW DIAMONDS OR NO DIAMONDS!!!!");
+    all_diamonds = new_diamonds;      
+    
+    initData();  
+    shortest_path = build_tsp_way(new_diamonds, self, graph, screen);
+    return shortest_path;
+  }
+ 
+
+  var all_diamonds_are_stable = true;
+   for (var i = 0; i < new_diamonds.length; ++i){
+    var x = new_diamonds[i].x;
+    var y = new_diamonds[i].y;
+    var no_new_diamond = true;
+    for (var j = 0; j < all_diamonds.length; ++j){
+      if (all_diamonds[j].x == new_diamonds[i].x && all_diamonds[j].y == new_diamonds[i].y){
+        no_new_diamond = false;
+        break;
+      }
+    }
+    if (no_new_diamond){
+      all_diamonds_are_stable = false;
+      break;
+    }         
+  } 
+
+  if (!all_diamonds_are_stable){
+    //console.log("\nUPDATE TSP!!!!");
+    initData();
+    shortest_path = build_tsp_way(new_diamonds,self, graph,screen);   
+  } 
+  else if (is_new_ok_targets(new_diamonds, graph, start)){
+    //console.log("\nNEW TARGETS!!!!");
+    initData();
+    shortest_path = build_tsp_way(new_diamonds,self, graph,screen);   
+  } 
+  else if (new_diamonds.length < all_diamonds.length){     
+
+    var diamond = ok_targets[best[tsp_index]];   
+    var is_planed = self.x == diamond.x && self.y == diamond.y;
+
+    if (is_planed){
+      //console.log("\nLESS DIAMONDS - PLANED!!!!");        
+    }
+    else{
+     // console.log("\nLESS DIAMONDS - RANDOM!!!!");   
+      var random_diamond_index = ok_targets.findIndex(p => p.x == diamond.x && p.y == diamond.y);
+      tsp_index = best.indexOf(random_diamond_index);
+
+      calc_tps_direction(tsp_index, self, graph);      
+    }
+
+    if (is_forward_tsp){   
+      tsp_index = tsp_index < best.length - 1 ? tsp_index + 1 : 0;   
+    }
+    else{
+      tsp_index = tsp_index > 0 ? tsp_index - 1 : best.length - 1;   
+    }
+    if (best[tsp_index] == ok_targets.length-1){
+      console.log("\nВернулись в свою точку");
+      throw "Вернулись в свою точку";
+    }
+
+    shortest_path = check_no_way(tsp_index, graph, self, new_diamonds, screen);
+   
+  }
+  else{
+    shortest_path = check_no_way(tsp_index, graph, self, new_diamonds, screen);
+  }
+ 
+  all_diamonds = new_diamonds;
+
+  // console.log("\n");
+  // if (is_forward_tsp){
+  //   for (var i = tsp_index; i< best.length; ++i ){
+  //     var target = ok_targets[best[i]];
+  //     console.log(target.x + " " + target.y);
+  //   }
+  // }
+  // else{
+  //   for (var i = tsp_index; i>= 0; --i ){
+  //     var target = ok_targets[best[i]];
+  //     console.log(target.x + " " + target.y);
+  //   }
+  // }
+  return shortest_path;
+}
+
+function check_no_way(tsp_index, graph, self, diamonds, screen){
+  var is_no_way = false;
+  if (ok_targets.length == 0) return undefined;//Нас заперли
+  var diamond = ok_targets[best[tsp_index]];   
+  if (diamond == undefined){//TODO: падает
+    console.log("\nbest_length: " + best.length);
+    console.log("\ntsp_index: " + tsp_index);
+    throw "ЖОПА";
+  }
+ 
+  var start = graph.grid[self.x][self.y];
+  var shortest_path = undefined;
+  if (graph.grid[diamond.x][diamond.y].weight == 0){
+    is_no_way = true;
+  }
+  else {
+    
+    var end = graph.grid[diamond.x][diamond.y];
+    shortest_path = astar.search(graph, start, end);
+    if (shortest_path.length == 0){
+      is_no_way = true;
+    }
+  }
+
+  if (is_no_way){
+    console.log("\nNO WAY!!!!");
+    initData();
+    shortest_path = build_tsp_way(diamonds,self, graph,screen);
+  } 
+  else{
+    var diamond = ok_targets[best[tsp_index]];   
+    var end = graph.grid[diamond.x][diamond.y]; 
+    shortest_path = astar.search(graph, start, end);    
+  }
+  return shortest_path;
+}
+
+function get_tsp_path(targets, self, graph, screen){
+  points = [];
+  var start = graph.grid[self.x][self.y];
+
+  var ok_targets=[];
+  targets.forEach(function(target) {
+    if (graph.grid[target.x][target.y].weight == 0) return;
+    var end = graph.grid[target.x][target.y];
+    var path = astar.search(graph, start, end);
+    if (path.length == 0) return;
+
+    ok_targets.push(target);
+    points.push(new Point(target.x, target.y));
+  }, this);  
+
+  if (points.length == 0) return undefined;
+  if (points.length == 1){
+    var end = graph.grid[ok_targets[0].x][ok_targets[0].y];
+    console.log("\n1 point!!!!!!!!!!!!!!!!");
+    return astar.search(graph, start, end);
+  }
+
+  ok_targets.push(self);
+  points.push(new Point(self.x, self.y));
+  
+  GAInitialize();
+  running = true;
+  draw();
+
+  var pathes = [];
+  for (var i = 0; i < best.length; ++i){
+    var start_tmp = graph.grid[ok_targets[i].x][ok_targets[i].y];
+   
+    var end_tmp =i < best.length - 1 ? graph.grid[ok_targets[i+1].x][ok_targets[i+1].y] : 
+      graph.grid[ok_targets[0].x][ok_targets[0].y];
+
+    var path = astar.search(graph, start_tmp, end_tmp);
+    pathes.push(path);
+    
+  } 
+ 
+  var self_index = best.indexOf(points.length - 1);
+  var next_target = self_index < best.length - 1 ? ok_targets[best[self_index + 1]] : ok_targets[0];
+  var prev_target = self_index > 0 ? ok_targets[best[self_index - 1]] : ok_targets[best[best.length - 1]];
+
+  var next_end = graph.grid[next_target.x][next_target.y];
+  var next_path = astar.search(graph, start, next_end);
+  
+  var prev_end = graph.grid[prev_target.x][prev_target.y];
+  var prev_path = astar.search(graph, start, prev_end);
+
+  var best_path = next_path.length < prev_path.length ? next_path : prev_path;
+
+  
+  console.log("\n");
+  for (let i = 0; i<screen_height; i++){
+    var res ="";
+    for (let j = 0; j<screen[i].length; j++) {
+      if (self.x == i && self.y == j){
+        res += "A";
+      }
+      else if (screen[i][j]=='*'){
+        res += "*";
+      }
+      else if (best_path.findIndex(p=> p.x == i && p.y == j) > -1){
+        res += "+";
+      }       
+      else if (pathes.findIndex(p=> p.findIndex(pp => pp.x == i && pp.y == j) > -1) > -1){
+        res += "-";
+      }   
+      else {
+        res += ' ';
+      }
+    
+    }
+    console.log(res);
+  }		 
+    
+ 
+  return best_path;
+}
+
+
+
 
 //function play(screen){
 exports.play = function*(screen){
-    while (true){			   
+    while (true){	
+      
+  
+    
+     
 
     screen_height = screen.length - 1;
   
@@ -522,6 +848,7 @@ exports.play = function*(screen){
   
 
     var graph = init_graph(screen, self, false);
+    set_movable_stones_weight(screen, self, graph);
     var butt_graph = init_graph(screen, self, true);
   
 
@@ -536,49 +863,74 @@ exports.play = function*(screen){
     check_closed_butts(screen);       
     afraid_of_butterfly(screen, graph, self, butts, butt_graph);   
 
-    //var shortest_path = get_shortest_path(self, close_butts, graph, false);
+    var shortest_path = undefined;
+    //сначала открываем бабачек
+    //shortest_path = get_shortest_path(self, close_butts, graph, false);
 
     var diamonds = find_targets('*', screen);
-    set_trap_diamonds(diamonds, screen, graph);
+    set_trap_diamonds(diamonds, screen, graph); 
     
-    // if (shortest_path == undefined){
-    var shortest_path = get_shortest_path(self, diamonds, graph, true);
-    // }   
-  
+    // console.log("\n");
+    // for (let i = 0; i<screen_height; i++){
+    //   var res ="";
+    //   for (let j = 0; j<screen[i].length; j++) {
+    //     if (self.x == i && self.y == j){
+    //       res += "A";
+    //     }
+                   
+    //     else {
+    //       res += butt_graph.grid[i][j].weight;
+    //     }
+      
+    //   }
+    //   console.log(res);
+    // }		 
+
+   //потом ищем алмазы
+    if (shortest_path == undefined){
+     shortest_path = get_path(diamonds, self, screen, graph); 
+    }
+         
     
     if (shortest_path == undefined){
       console.log("\nNo appropriate diamonds 1");    
       
-      var shortest_path = get_path_to_kill_butt(butts, screen, graph, self);     
+      //потом ище пути, чтобы убить бабочек
+      shortest_path = get_path_to_kill_butt(butts, screen, graph, self);     
 
-      if (shortest_path == undefined){      
-        var dirts = find_targets(':', screen);
-        set_trap_diamonds(dirts, screen, graph);
-        var shortest_path = get_shortest_path(self, dirts, graph, false);
+      //потом жрем ближайшую землю
+      if (shortest_path == undefined){    
+        if (butts.length == 0 && diamonds.length == 0){
+          var x = 1;
+          var y = 1;
+          var start = graph.grid[self.x][self.y];
+         
+          while (shortest_path == undefined){
+            var end = graph.grid[x][y];
+            if (end.weight == 0){
+              y++;
+              continue;
+            } 
+            var path = astar.search(graph, start, end);
+            if (path.length == 0) {
+              y++;
+              continue;
+            }
+            shortest_path = path;
+          }
+        }  
+        else{
+          var dirts = find_targets(':', screen);
+          set_trap_diamonds(dirts, screen, graph);
+          var shortest_path = get_shortest_path(self, dirts, graph, false);
+        }
       }
     }
 
 
-    if (shortest_path != undefined){
+    
+    
 
-      console.log("\n");
-      for (let i = 0; i<screen_height; i++){
-        var res ="";
-        for (let j = 0; j<screen[i].length; j++) {
-          if (self.x == i && self.y == j){
-            res += "A";
-          }
-          else if (shortest_path.findIndex(p=> p.x == i && p.y == j) > -1){
-            res += "-";
-          }       
-          else {
-            res += graph.grid[i][j].weight;
-          }
-        
-        }
-        console.log(res);
-      }		 
-    }  
 
     var move= '';
     if (shortest_path != undefined){
@@ -593,6 +945,21 @@ exports.play = function*(screen){
       else if (first_step.x > self.x)
         move= 'd';	
       else throw "Strange move";      
+    }
+    else{
+      console.log("STAYING!!!!!!!!!!!!!!");
+      // if ('*: '.includes(screen[self.x][self.y + 1])){
+      //   move='r';
+      // }
+      // else if ('*: '.includes(screen[self.x][self.y - 1])){
+      //   move='l';
+      // }
+      // else if('*: '.includes(screen[self.x+1][self.y])){
+      //   move='d';
+      // }
+      // else if ('*: '.includes(screen[self.x-1][self.y])){
+      //   move='u';
+      // }
     }
     yield move;
 
@@ -1252,11 +1619,411 @@ Delaunay = {
     return [u, v];
   }
 };
-
-  
-
+ 
 
 
+
+
+
+
+
+
+function GAInitialize() {
+  countDistances();
+  for(var i=0; i<POPULATION_SIZE; i++) {
+    population.push(randomIndivial(points.length));
+  }
+  setBestValue();
+}
+function GANextGeneration() {
+  currentGeneration++;
+  selection();
+  crossover();
+  mutation();
+
+  //if(UNCHANGED_GENS > POPULATION_SIZE + ~~(points.length/10)) {
+    //MUTATION_PROBABILITY = 0.05;
+    //if(doPreciseMutate) {
+    //  best = preciseMutate(best);
+    //  best = preciseMutate1(best);
+    //  if(evaluate(best) < bestValue) {
+    //    bestValue = evaluate(best);
+    //    UNCHANGED_GENS = 0;
+    //    doPreciseMutate = true;
+    //  } else {
+    //    doPreciseMutate = false;
+    //  }
+    //}
+  //} else {
+    //doPreciseMutate = 1;
+    //MUTATION_PROBABILITY = 0.01;
+  //}
+  setBestValue();
+}
+function tribulate() {
+  //for(var i=0; i<POPULATION_SIZE; i++) {
+  for(var i=population.length>>1; i<POPULATION_SIZE; i++) {
+    population[i] = randomIndivial(points.length);
+  }	
+}
+function selection() {
+  var parents = new Array();
+  var initnum = 4;
+  parents.push(population[currentBest.bestPosition]);
+  parents.push(doMutate(best.clone()));
+  parents.push(pushMutate(best.clone()));
+  parents.push(best.clone());
+
+  setRoulette();
+  for(var i=initnum; i<POPULATION_SIZE; i++) {
+    parents.push(population[wheelOut(Math.random())]);
+  }
+  population = parents;
+}
+function crossover() {
+  var queue = new Array();
+  for(var i=0; i<POPULATION_SIZE; i++) {
+    if( Math.random() < CROSSOVER_PROBABILITY ) {
+      queue.push(i);
+    }
+  } 
+  queue.shuffle();
+  for(var i=0, j=queue.length-1; i<j; i+=2) {
+    doCrossover(queue[i], queue[i+1]);
+    //oxCrossover(queue[i], queue[i+1]);
+  }
+}
+//function oxCrossover(x, y) {	
+//  //var px = population[x].roll();
+//  //var py = population[y].roll();
+//  var px = population[x].slice(0);
+//  var py = population[y].slice(0);
+
+//  var rand = randomNumber(points.length-1) + 1;
+//  var pre_x = px.slice(0, rand);
+//  var pre_y = py.slice(0, rand);
+
+//  var tail_x = px.slice(rand, px.length);
+//  var tail_y = py.slice(rand, py.length);
+
+//  px = tail_x.concat(pre_x);
+//  py = tail_y.concat(pre_y);
+
+//  population[x] = pre_y.concat(px.reject(pre_y));
+//  population[y] = pre_x.concat(py.reject(pre_x));
+//}
+function doCrossover(x, y) {
+  var child1 = getChild('next', x, y);
+  var child2 = getChild('previous', x, y);
+  population[x] = child1;
+  population[y] = child2;
+}
+function getChild(fun, x, y) {
+  var solution = new Array();
+  var px = population[x].clone();
+  var py = population[y].clone();
+  var dx,dy;
+  var c = px[randomNumber(px.length)];
+  solution.push(c);
+  while(px.length > 1) {
+    dx = px[fun](px.indexOf(c));
+    dy = py[fun](py.indexOf(c));
+    px.deleteByValue(c);
+    py.deleteByValue(c);
+    c = dis[c][dx] < dis[c][dy] ? dx : dy;
+    solution.push(c);
+  }
+  return solution;
+}
+function mutation() {
+  for(var i=0; i<POPULATION_SIZE; i++) {
+    if(Math.random() < MUTATION_PROBABILITY) {
+      if(Math.random() > 0.5) {
+        population[i] = pushMutate(population[i]);
+      } else {
+        population[i] = doMutate(population[i]);
+      }
+      i--;
+    }
+  }
+}
+function preciseMutate(orseq) {  
+  var seq = orseq.clone();
+  if(Math.random() > 0.5){
+    seq.reverse();
+  }
+  var bestv = evaluate(seq);
+  for(var i=0; i<(seq.length>>1); i++) {
+    for(var j=i+2; j<seq.length-1; j++) {
+      var new_seq = swap_seq(seq, i,i+1,j,j+1);
+      var v = evaluate(new_seq);
+      if(v < bestv) {bestv = v, seq = new_seq; };
+    }
+  }
+  //alert(bestv);
+  return seq;
+}
+function preciseMutate1(orseq) {  
+  var seq = orseq.clone();
+  var bestv = evaluate(seq);
+
+  for(var i=0; i<seq.length-1; i++) {
+    var new_seq = seq.clone();
+    new_seq.swap(i, i+1);
+    var v = evaluate(new_seq);
+    if(v < bestv) {bestv = v, seq = new_seq; };
+  }
+  //alert(bestv);
+  return seq;
+}
+function swap_seq(seq, p0, p1, q0, q1) {
+  var seq1 = seq.slice(0, p0);
+  var seq2 = seq.slice(p1+1, q1);
+  seq2.push(seq[p0]);
+  seq2.push(seq[p1]);
+  var seq3 = seq.slice(q1, seq.length);
+  return seq1.concat(seq2).concat(seq3);
+}
+function doMutate(seq) {
+  mutationTimes++;
+  var m,n;
+  // m and n refers to the actual index in the array
+  // m range from 0 to length-2, n range from 2...length-m
+  do {
+    m = randomNumber(seq.length - 2);
+    n = randomNumber(seq.length);
+  } while (m>=n)
+
+    for(var i=0, j=(n-m+1)>>1; i<j; i++) {
+      seq.swap(m+i, n-i);
+    }
+    return seq;
+}
+function pushMutate(seq) {
+  mutationTimes++;
+  var m,n;
+  do {
+    m = randomNumber(seq.length>>1);
+    n = randomNumber(seq.length);
+  } while (m>=n)
+
+  var s1 = seq.slice(0,m);
+  var s2 = seq.slice(m,n)
+  var s3 = seq.slice(n,seq.length);
+  return s2.concat(s1).concat(s3).clone();
+}
+function setBestValue() {
+  for(var i=0; i<population.length; i++) {
+    values[i] = evaluate(population[i]);
+  }
+  currentBest = getCurrentBest();
+  if(bestValue === undefined || bestValue > currentBest.bestValue) {
+    best = population[currentBest.bestPosition].clone();
+    bestValue = currentBest.bestValue;
+    UNCHANGED_GENS = 0;
+  } else {
+    UNCHANGED_GENS += 1;
+  }
+
+  if (UNCHANGED_GENS == 10){
+      running = false;
+  }
+}
+function getCurrentBest() {
+  var bestP = 0,
+  currentBestValue = values[0];
+
+  for(var i=1; i<population.length; i++) {
+    if(values[i] < currentBestValue) {
+      currentBestValue = values[i];
+      bestP = i;
+    }
+  }
+  return {
+    bestPosition : bestP
+    , bestValue    : currentBestValue
+  }
+}
+function setRoulette() {
+  //calculate all the fitness
+  for(var i=0; i<values.length; i++) { fitnessValues[i] = 1.0/values[i]; }
+  //set the roulette
+  var sum = 0;
+  for(var i=0; i<fitnessValues.length; i++) { sum += fitnessValues[i]; }
+  for(var i=0; i<roulette.length; i++) { roulette[i] = fitnessValues[i]/sum; }
+  for(var i=1; i<roulette.length; i++) { roulette[i] += roulette[i-1]; }
+}
+function wheelOut(rand) {
+  var i;
+  for(i=0; i<roulette.length; i++) {
+    if( rand <= roulette[i] ) {
+      return i;
+    }
+  }
+}
+function randomIndivial(n) {
+  var a = [];
+  for(var i=0; i<n; i++) {
+    a.push(i);
+  }
+  return a.shuffle();
+}
+function evaluate(indivial) {
+  var sum = dis[indivial[0]][indivial[indivial.length - 1]];
+  for(var i=1; i<indivial.length; i++) {
+    sum += dis[indivial[i]][indivial[i-1]];
+  }
+  return sum;
+}
+function countDistances() {
+  var length = points.length;
+  dis = new Array(length);
+  for(var i=0; i<length; i++) {
+    dis[i] = new Array(length);
+    for(var j=0; j<length; j++) {
+      dis[i][j] = ~~distance(points[i], points[j]); 
+    }
+  }
+}
+
+Array.prototype.clone = function() { return this.slice(0); }
+Array.prototype.shuffle = function() {
+  for(var j, x, i = this.length-1; i; j = randomNumber(i), x = this[--i], this[i] = this[j], this[j] = x);
+  return this;
+};
+Array.prototype.indexOf = function (value) {	
+  for(var i=0; i<this.length; i++) {
+    if(this[i] === value) {
+      return i;
+    }
+  }
+}
+Array.prototype.deleteByValue = function (value) {
+  var pos = this.indexOf(value);
+  this.splice(pos, 1);
+}
+Array.prototype.next = function (index) {
+  if(index === this.length-1) {
+    return this[0];
+  } else {
+    return this[index+1];
+  }
+}
+Array.prototype.previous = function (index) {
+  if(index === 0) {
+    return this[this.length-1];
+  } else {
+    return this[index-1];
+  }
+}
+Array.prototype.swap = function (x, y) {
+  if(x>this.length || y>this.length || x === y) {return}
+  var tem = this[x];
+  this[x] = this[y];
+  this[y] = tem;
+}
+Array.prototype.roll = function () {
+  var rand = randomNumber(this.length);
+  var tem = [];
+  for(var i = rand; i<this.length; i++) {
+    tem.push(this[i]);
+  }
+  for(var i = 0; i<rand; i++) {
+    tem.push(this[i]);
+  }
+  return tem;
+}
+Array.prototype.reject = function (array) {
+  return $.map(this,function (ele) {
+    return $.inArray(ele, array) < 0 ? ele : null;
+  })
+}
+function intersect(x, y) {
+  return $.map(x, function (xi) {
+    return $.inArray(xi, y) < 0 ? null : xi;
+  })
+}
+function Point(x, y) {
+  this.x = x;
+  this.y = y;
+}
+function randomPoint() {
+  var randomx = randomNumber(WIDTH);
+  var randomy = randomNumber(HEIGHT);
+  var randomPoint = new Point(randomx, randomy);
+  return randomPoint; 
+}
+function randomNumber(boundary) {
+  return parseInt(Math.random() * boundary);
+  //return Math.floor(Math.random() * boundary);
+}
+function distance(p1, p2) {
+  return euclidean(p1.x-p2.x, p1.y-p2.y);
+}
+function euclidean(dx, dy) {
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+
+var canvas, ctx;
+var WIDTH = 40;
+var HEIGHT = 20;
+var points = [];
+var running;
+var canvasMinX, canvasMinY;
+var doPreciseMutate;
+
+var POPULATION_SIZE;
+var ELITE_RATE;
+var CROSSOVER_PROBABILITY;
+var MUTATION_PROBABILITY;
+var OX_CROSSOVER_RATE;
+var UNCHANGED_GENS;
+
+var mutationTimes;
+var dis;
+var bestValue, best;
+var currentGeneration;
+var currentBest;
+var population;
+var values;
+var fitnessValues;
+var roulette;
+
+
+function initData() {
+  running = false;
+  POPULATION_SIZE = 30;
+  ELITE_RATE = 0.3;
+  CROSSOVER_PROBABILITY = 0.9;
+  MUTATION_PROBABILITY  = 0.01;
+  //OX_CROSSOVER_RATE = 0.05;
+  UNCHANGED_GENS = 0;
+  mutationTimes = 0;
+  doPreciseMutate = true;
+
+  bestValue = undefined;
+  best = [];
+  currentGeneration = 0;
+  currentBest;
+  population = []; //new Array(POPULATION_SIZE);
+  values = new Array(POPULATION_SIZE);
+  fitnessValues = new Array(POPULATION_SIZE);
+  roulette = new Array(POPULATION_SIZE);
+}
+
+function addRandomPoints(number) {
+  running = false;
+  for(var i = 0; i<number; i++) {
+    points.push(randomPoint());
+  }
+}
+
+function draw() {
+  while(running) {
+    GANextGeneration();   
+  }
+}
 
 
 
@@ -1266,6 +2033,12 @@ Delaunay = {
 var stones = [];
 var screen_height = 0;
 var close_butts=undefined;
+var is_tsp_data_initialized = false;
+var tsp_index = undefined;
+
+var ok_targets=[];
+var all_diamonds =[];
+var is_forward_tsp = true;
 
 var CORNER_TYPE={
   LD:1,
