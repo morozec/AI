@@ -148,6 +148,7 @@ function set_movable_stones_weight(screen, self, graph){
       let row = screen[x];
       for (let y = 0; y<row.length; y++)    {
         if (screen[x][y]=='O'){
+          if (screen[x+1][y]==' ') continue; //если под ним пусто, он упадет - это не движимый камень
           graph.grid[x][y].weight = 1;
           var is_ok_stone = false;
           var start = graph.grid[self.x][self.y];
