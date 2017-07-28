@@ -449,22 +449,9 @@ function build_tsp_way(targets, self, graph, screen){
   points = [];//список точек для алгоримта TSP 
   var start = graph.grid[self.x][self.y];
   
-  targets.forEach(function(target) {
-    if (graph.grid[target.x][target.y].weight == 0) return;
-    var end = graph.grid[target.x][target.y];
-    var path = astar.search(graph, start, end);
-    if (path.length == 0) return;
-  
+  targets.forEach(function(target) {  
     points.push(new Point(target.x, target.y));
-  }, this);  
-
-  //если доступных точек нет, возвращаемся без пути
-  if (points.length == 0) return undefined;
-  //если доступна 1 точка, строим путь по A*
-  if (points.length == 1){
-    var end = graph.grid[points[0].x][points[0].y];   
-    return astar.search(graph, start, end);
-  }
+  }, this); 
 
   //добавляем себя в список точек  
   points.push(new Point(self.x, self.y));
@@ -491,6 +478,7 @@ function build_tsp_way(targets, self, graph, screen){
   return shortest_path;
 }
 
+//Метод вычисляет направление обхода результата TSP - вперед или назад (зависит от расстояния)
 function calc_tps_direction(self_index, self, graph){
   var start = graph.grid[self.x][self.y];
 
@@ -505,48 +493,51 @@ function calc_tps_direction(self_index, self, graph){
   is_forward_tsp = next_path.length < prev_path.length;
 }
 
-function get_path(new_diamonds, self, screen, graph){
+function get_path(new_diamonds, new_ok_diamonds, self, screen, graph){
 
   var shortest_path = undefined;
   var start = graph.grid[self.x][self.y];
-  if (new_diamonds.length == 0 || new_diamonds.length > all_diamonds.length) {
+
+  //если новых алмазов больше чем было, перестраиваем TSP 
+  if (new_ok_diamonds.length > ok_diamonds.length) {
     //console.log("\nNEW DIAMONDS OR NO DIAMONDS!!!!");
-    all_diamonds = new_diamonds;      
-    
+    ok_diamonds = new_ok_diamonds;      
+    all_diamonds = new_diamonds;
     initData();  
-    shortest_path = build_tsp_way(new_diamonds, self, graph, screen);
+    shortest_path = build_tsp_way(new_ok_diamonds, self, graph, screen);
     return shortest_path;
   }
  
-
+  //проверяем, что все алмазы на своих местах
   var all_diamonds_are_stable = true;
-   for (var i = 0; i < new_diamonds.length; ++i){
-    var x = new_diamonds[i].x;
-    var y = new_diamonds[i].y;
-    var no_new_diamond = true;
-    for (var j = 0; j < all_diamonds.length; ++j){
-      if (all_diamonds[j].x == new_diamonds[i].x && all_diamonds[j].y == new_diamonds[i].y){
-        no_new_diamond = false;
+   for (var i = 0; i < new_ok_diamonds.length; ++i){
+    var x = new_ok_diamonds[i].x;
+    var y = new_ok_diamonds[i].y;
+    var is_new_diamond = true;
+    for (var j = 0; j < ok_diamonds.length; ++j){
+      if (ok_diamonds[j].x == new_ok_diamonds[i].x && ok_diamonds[j].y == new_ok_diamonds[i].y){
+        is_new_diamond = false;
         break;
       }
     }
-    if (no_new_diamond){
+    if (is_new_diamond){//не нашли в старом списке алмаза с такими координатами
       all_diamonds_are_stable = false;
       break;
     }         
   } 
 
-  if (!all_diamonds_are_stable){
+  
+  if (!all_diamonds_are_stable){ //координаты алмазов изменились (или появились новые доступные)
     //console.log("\nUPDATE TSP!!!!");
     initData();
-    shortest_path = build_tsp_way(new_diamonds,self, graph,screen);   
+    shortest_path = build_tsp_way(new_ok_diamonds,self, graph,screen);   
   } 
-  else if (is_new_ok_targets(new_diamonds, graph, start)){
-    //console.log("\nNEW TARGETS!!!!");
-    initData();
-    shortest_path = build_tsp_way(new_diamonds,self, graph,screen);   
-  } 
-  else if (new_diamonds.length < all_diamonds.length){     
+  // else if (is_new_ok_targets(new_ok_diamonds, graph, start)){ //координаты не изменились, но некоторые стали доступными
+  //   //console.log("\nNEW TARGETS!!!!");
+  //   initData();
+  //   shortest_path = build_tsp_way(new_ok_diamonds,self, graph,screen);   
+  // } 
+  else if (new_diamonds.length < all_diamonds.length){  //число всех алмазов умееньшилось - мы собрали 1   
 
     var diamond = points[best[tsp_index]];   
     var is_planed = self.x == diamond.x && self.y == diamond.y;
@@ -568,31 +559,45 @@ function get_path(new_diamonds, self, screen, graph){
     else{
       tsp_index = tsp_index > 0 ? tsp_index - 1 : best.length - 1;   
     }
-    if (best[tsp_index] == points.length-1){
+
+    if (best[tsp_index] == points.length-1){//Вернулись в свою точку
       console.log("\nВернулись в свою точку");
       throw "Вернулись в свою точку";
+      // initData();
+      // shortest_path = build_tsp_way(new_ok_diamonds,self, graph,screen);   
     }
-
-    shortest_path = check_no_way(tsp_index, graph, self, new_diamonds, screen);
+    else{
+      if (best.length == 0) {
+        console.log("Умьшилось число алмазов");
+        throw "ЖОПА";
+      }
+      shortest_path = check_no_way(tsp_index, graph, self, new_ok_diamonds, screen);
+    }
    
   }
-  else{
-    shortest_path = check_no_way(tsp_index, graph, self, new_diamonds, screen);
+  else{ //с алмазами ничего не произошло. двигаемся дальше
+    
+    if (best.length == 0) {
+      console.log("Обычный шаг");
+      throw "ЖОПА";
+    }
+    shortest_path = check_no_way(tsp_index, graph, self, new_ok_diamonds, screen);
   }
  
+  ok_diamonds = new_ok_diamonds;  
   all_diamonds = new_diamonds;
-
-  
   return shortest_path;
 }
 
+//Метод проверяет доступность пути в текущий алмаз. Если путь недоступен, перезапускаем TSP
 function check_no_way(tsp_index, graph, self, diamonds, screen){
   var is_no_way = false;
-  if (points.length == 0) return undefined;//Нас заперли
+  
   var diamond = points[best[tsp_index]];   
   if (diamond == undefined){//TODO: падает
-    console.log("\nbest_length: " + best.length);
-    console.log("\ntsp_index: " + tsp_index);
+    console.log("\npoints_length: " + points.length);
+    console.log("best_length: " + best.length);
+    console.log("tsp_index: " + tsp_index);
     throw "ЖОПА";
   }
  
@@ -601,8 +606,7 @@ function check_no_way(tsp_index, graph, self, diamonds, screen){
   if (graph.grid[diamond.x][diamond.y].weight == 0){
     is_no_way = true;
   }
-  else {
-    
+  else {    
     var end = graph.grid[diamond.x][diamond.y];
     shortest_path = astar.search(graph, start, end);
     if (shortest_path.length == 0){
@@ -615,12 +619,24 @@ function check_no_way(tsp_index, graph, self, diamonds, screen){
     initData();
     shortest_path = build_tsp_way(diamonds,self, graph,screen);
   } 
-  else{
-    var diamond = points[best[tsp_index]];   
-    var end = graph.grid[diamond.x][diamond.y]; 
-    shortest_path = astar.search(graph, start, end);    
-  }
+  //Иначе путь уже построен
+  
   return shortest_path;
+}
+
+
+function get_ok_targets(targets, start, graph){
+  var ok_targets = [];
+  
+  targets.forEach(function(target) {
+    if (graph.grid[target.x][target.y].weight == 0) return;
+    var end = graph.grid[target.x][target.y];
+    var path = astar.search(graph, start, end);
+    if (path.length == 0) return;
+  
+    ok_targets.push(target);
+  }, this); 
+  return ok_targets; 
 }
 
 
@@ -677,7 +693,17 @@ exports.play = function*(screen){
 
    //потом ищем алмазы
     if (shortest_path == undefined){
-     shortest_path = get_path(diamonds, self, screen, graph); 
+      var start = graph.grid[self.x][self.y];
+      var ok_diamonds = get_ok_targets(diamonds, self, graph);
+
+      if (ok_diamonds.length >= 2){
+        shortest_path = get_path(diamonds, ok_diamonds, self, screen, graph); 
+      }
+      else if(ok_diamonds.length == 1){
+        var ok_diamond = ok_diamonds[0];
+        shortest_path = astar.search(graph, start, graph.grid[ok_diamond.x][ok_diamond.y]);
+      }
+     
     }
          
     
@@ -689,7 +715,7 @@ exports.play = function*(screen){
 
       //потом жрем ближайшую землю
       if (shortest_path == undefined){    
-        if (butts.length == 0 && diamonds.length == 0){
+        if (butts.length == 0){//бабочек нет, а алмазов либо нет, либо недоступны
           var x = 1;
           var y = 1;
           var start = graph.grid[self.x][self.y];
@@ -795,7 +821,7 @@ exports.play = function*(screen){
 
 
 
-
+//A*
 function pathTo(node) {
   var curr = node;
   var path = [];
@@ -1179,7 +1205,7 @@ BinaryHeap.prototype = {
 
 
 
-
+//TSP
 function GAInitialize() {
   countDistances();
   for(var i=0; i<POPULATION_SIZE; i++) {
@@ -1567,14 +1593,16 @@ function draw() {
 
 
 
+
+//INITIAL DATA
 var stones = [];
 var screen_height = 0;
 var close_butts=undefined;
 var is_tsp_data_initialized = false;
 var tsp_index = undefined;
 
-
-var all_diamonds =[];
+var all_diamonds = [];
+var ok_diamonds =[];
 var is_forward_tsp = true;
 
 var CORNER_TYPE={
