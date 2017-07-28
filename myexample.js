@@ -427,6 +427,7 @@ function is_trap(diamond, screen){
   return true;
 }
 
+//Метод проверяет, что на карте появилась новая доступная цель, неучтенная на предыдущем шаге TSP
 function is_new_ok_targets(targets, graph, start){
   var is_new=false;
   targets.forEach(function(target) {
@@ -443,11 +444,11 @@ function is_new_ok_targets(targets, graph, start){
   return is_new;
 }
 
+//Строит путь TSP
 function build_tsp_way(targets, self, graph, screen){
-  points = [];
-  ok_targets =[];
+  points = [];//список точек для алгоримта TSP
+  ok_targets =[];//список целей 
   var start = graph.grid[self.x][self.y];
-
   
   targets.forEach(function(target) {
     if (graph.grid[target.x][target.y].weight == 0) return;
@@ -459,12 +460,15 @@ function build_tsp_way(targets, self, graph, screen){
     points.push(new Point(target.x, target.y));
   }, this);  
 
+  //если доступных точек нет, возвращаемся без пути
   if (points.length == 0) return undefined;
+  //если доступна 1 точка, строим путь по A*
   if (points.length == 1){
     var end = graph.grid[ok_targets[0].x][ok_targets[0].y];   
     return astar.search(graph, start, end);
   }
 
+  //добавляем себя в спи
   ok_targets.push(self);
   points.push(new Point(self.x, self.y));
   
@@ -581,19 +585,7 @@ function get_path(new_diamonds, self, screen, graph){
  
   all_diamonds = new_diamonds;
 
-  // console.log("\n");
-  // if (is_forward_tsp){
-  //   for (var i = tsp_index; i< best.length; ++i ){
-  //     var target = ok_targets[best[i]];
-  //     console.log(target.x + " " + target.y);
-  //   }
-  // }
-  // else{
-  //   for (var i = tsp_index; i>= 0; --i ){
-  //     var target = ok_targets[best[i]];
-  //     console.log(target.x + " " + target.y);
-  //   }
-  // }
+  
   return shortest_path;
 }
 
@@ -634,97 +626,12 @@ function check_no_way(tsp_index, graph, self, diamonds, screen){
   return shortest_path;
 }
 
-function get_tsp_path(targets, self, graph, screen){
-  points = [];
-  var start = graph.grid[self.x][self.y];
-
-  var ok_targets=[];
-  targets.forEach(function(target) {
-    if (graph.grid[target.x][target.y].weight == 0) return;
-    var end = graph.grid[target.x][target.y];
-    var path = astar.search(graph, start, end);
-    if (path.length == 0) return;
-
-    ok_targets.push(target);
-    points.push(new Point(target.x, target.y));
-  }, this);  
-
-  if (points.length == 0) return undefined;
-  if (points.length == 1){
-    var end = graph.grid[ok_targets[0].x][ok_targets[0].y];
-    console.log("\n1 point!!!!!!!!!!!!!!!!");
-    return astar.search(graph, start, end);
-  }
-
-  ok_targets.push(self);
-  points.push(new Point(self.x, self.y));
-  
-  GAInitialize();
-  running = true;
-  draw();
-
-  var pathes = [];
-  for (var i = 0; i < best.length; ++i){
-    var start_tmp = graph.grid[ok_targets[i].x][ok_targets[i].y];
-   
-    var end_tmp =i < best.length - 1 ? graph.grid[ok_targets[i+1].x][ok_targets[i+1].y] : 
-      graph.grid[ok_targets[0].x][ok_targets[0].y];
-
-    var path = astar.search(graph, start_tmp, end_tmp);
-    pathes.push(path);
-    
-  } 
- 
-  var self_index = best.indexOf(points.length - 1);
-  var next_target = self_index < best.length - 1 ? ok_targets[best[self_index + 1]] : ok_targets[0];
-  var prev_target = self_index > 0 ? ok_targets[best[self_index - 1]] : ok_targets[best[best.length - 1]];
-
-  var next_end = graph.grid[next_target.x][next_target.y];
-  var next_path = astar.search(graph, start, next_end);
-  
-  var prev_end = graph.grid[prev_target.x][prev_target.y];
-  var prev_path = astar.search(graph, start, prev_end);
-
-  var best_path = next_path.length < prev_path.length ? next_path : prev_path;
-
-  
-  console.log("\n");
-  for (let i = 0; i<screen_height; i++){
-    var res ="";
-    for (let j = 0; j<screen[i].length; j++) {
-      if (self.x == i && self.y == j){
-        res += "A";
-      }
-      else if (screen[i][j]=='*'){
-        res += "*";
-      }
-      else if (best_path.findIndex(p=> p.x == i && p.y == j) > -1){
-        res += "+";
-      }       
-      else if (pathes.findIndex(p=> p.findIndex(pp => pp.x == i && pp.y == j) > -1) > -1){
-        res += "-";
-      }   
-      else {
-        res += ' ';
-      }
-    
-    }
-    console.log(res);
-  }		 
-    
- 
-  return best_path;
-}
-
-
 
 
 //function play(screen){
 exports.play = function*(screen){
-    while (true){	
+    while (true){	    
       
-  
-    
      
 
     screen_height = screen.length - 1;
