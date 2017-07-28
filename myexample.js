@@ -436,7 +436,7 @@ function is_new_ok_targets(targets, graph, start){
     var path = astar.search(graph, start, end);
     if (path.length == 0) return;
 
-    var index = ok_targets.findIndex(p => p.x == target.x && p.y == target.y);
+    var index = points.findIndex(p => p.x == target.x && p.y == target.y);
     if (index == -1){
       is_new = true;      
     }    
@@ -446,8 +446,7 @@ function is_new_ok_targets(targets, graph, start){
 
 //Строит путь TSP
 function build_tsp_way(targets, self, graph, screen){
-  points = [];//список точек для алгоримта TSP
-  ok_targets =[];//список целей 
+  points = [];//список точек для алгоримта TSP 
   var start = graph.grid[self.x][self.y];
   
   targets.forEach(function(target) {
@@ -455,8 +454,7 @@ function build_tsp_way(targets, self, graph, screen){
     var end = graph.grid[target.x][target.y];
     var path = astar.search(graph, start, end);
     if (path.length == 0) return;
-
-    ok_targets.push(target);
+  
     points.push(new Point(target.x, target.y));
   }, this);  
 
@@ -464,12 +462,11 @@ function build_tsp_way(targets, self, graph, screen){
   if (points.length == 0) return undefined;
   //если доступна 1 точка, строим путь по A*
   if (points.length == 1){
-    var end = graph.grid[ok_targets[0].x][ok_targets[0].y];   
+    var end = graph.grid[points[0].x][points[0].y];   
     return astar.search(graph, start, end);
   }
 
-  //добавляем себя в спи
-  ok_targets.push(self);
+  //добавляем себя в список точек  
   points.push(new Point(self.x, self.y));
   
   GAInitialize();
@@ -481,14 +478,14 @@ function build_tsp_way(targets, self, graph, screen){
   calc_tps_direction(self_index, self, graph);
   
   if (is_forward_tsp){
-    tsp_index = self_index < ok_targets.length - 1 ? self_index + 1 : 0;
+    tsp_index = self_index < points.length - 1 ? self_index + 1 : 0;
   }
   else{
-    tsp_index = self_index > 0 ? self_index - 1 : ok_targets.length - 1;
+    tsp_index = self_index > 0 ? self_index - 1 : points.length - 1;
   }
 
 
-  var diamond = ok_targets[best[tsp_index]];   
+  var diamond = points[best[tsp_index]];   
   var end = graph.grid[diamond.x][diamond.y]; 
   var shortest_path = astar.search(graph, start, end);
   return shortest_path;
@@ -497,8 +494,8 @@ function build_tsp_way(targets, self, graph, screen){
 function calc_tps_direction(self_index, self, graph){
   var start = graph.grid[self.x][self.y];
 
-  var next_target = self_index < best.length - 1 ? ok_targets[best[self_index + 1]] : ok_targets[0];
-  var prev_target = self_index > 0 ? ok_targets[best[self_index - 1]] : ok_targets[best[best.length - 1]];
+  var next_target = self_index < best.length - 1 ? points[best[self_index + 1]] : points[0];
+  var prev_target = self_index > 0 ? points[best[self_index - 1]] : points[best[best.length - 1]];
 
   var next_end = graph.grid[next_target.x][next_target.y];
   var next_path = astar.search(graph, start, next_end);
@@ -551,7 +548,7 @@ function get_path(new_diamonds, self, screen, graph){
   } 
   else if (new_diamonds.length < all_diamonds.length){     
 
-    var diamond = ok_targets[best[tsp_index]];   
+    var diamond = points[best[tsp_index]];   
     var is_planed = self.x == diamond.x && self.y == diamond.y;
 
     if (is_planed){
@@ -559,7 +556,7 @@ function get_path(new_diamonds, self, screen, graph){
     }
     else{
      // console.log("\nLESS DIAMONDS - RANDOM!!!!");   
-      var random_diamond_index = ok_targets.findIndex(p => p.x == diamond.x && p.y == diamond.y);
+      var random_diamond_index = points.findIndex(p => p.x == diamond.x && p.y == diamond.y);
       tsp_index = best.indexOf(random_diamond_index);
 
       calc_tps_direction(tsp_index, self, graph);      
@@ -571,7 +568,7 @@ function get_path(new_diamonds, self, screen, graph){
     else{
       tsp_index = tsp_index > 0 ? tsp_index - 1 : best.length - 1;   
     }
-    if (best[tsp_index] == ok_targets.length-1){
+    if (best[tsp_index] == points.length-1){
       console.log("\nВернулись в свою точку");
       throw "Вернулись в свою точку";
     }
@@ -591,8 +588,8 @@ function get_path(new_diamonds, self, screen, graph){
 
 function check_no_way(tsp_index, graph, self, diamonds, screen){
   var is_no_way = false;
-  if (ok_targets.length == 0) return undefined;//Нас заперли
-  var diamond = ok_targets[best[tsp_index]];   
+  if (points.length == 0) return undefined;//Нас заперли
+  var diamond = points[best[tsp_index]];   
   if (diamond == undefined){//TODO: падает
     console.log("\nbest_length: " + best.length);
     console.log("\ntsp_index: " + tsp_index);
@@ -619,7 +616,7 @@ function check_no_way(tsp_index, graph, self, diamonds, screen){
     shortest_path = build_tsp_way(diamonds,self, graph,screen);
   } 
   else{
-    var diamond = ok_targets[best[tsp_index]];   
+    var diamond = points[best[tsp_index]];   
     var end = graph.grid[diamond.x][diamond.y]; 
     shortest_path = astar.search(graph, start, end);    
   }
@@ -1576,7 +1573,7 @@ var close_butts=undefined;
 var is_tsp_data_initialized = false;
 var tsp_index = undefined;
 
-var ok_targets=[];
+
 var all_diamonds =[];
 var is_forward_tsp = true;
 
