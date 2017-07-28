@@ -70,122 +70,7 @@ function get_vectors_angle(a, b){
 }
 
 //Ищем ближаший возможный путь от стартовой точки до 1 из целей
-function get_shortest_path(start, targets, graph, use_delone){
- 
-
-  // if (use_delone){
-   
-  //   //собираем список вершин для Делоне
-  //   var vertices = [];    
-  //   targets.forEach(function(target) {
-  //     vertices.push([target.x, target.y]);
-  //   }, this);
-  //   //добавялем в список вершин себя
-  //   vertices.push([start.x, start.y]);
-
-  //   //разбиваем результат на треугольники
-  //   var delone = Delaunay.triangulate(vertices);
-     
-  //   var triangles = [];
-  //   var counter = 0;
-  //   while (counter < delone.length){
-  //     var triangle = delone.slice(counter, counter + 3);
-  //     triangles.push(triangle);
-  //     counter += 3;      
-  //   }    
-
-  //   //ищем треугольники, в которые входим мы
-  //   var my_triangles = [];
-  //   triangles.forEach(function(triangle) {
-  //     if (triangle.indexOf(vertices.length - 1) > -1){
-  //       my_triangles.push(triangle);
-  //     }
-  //   }, this); 
-   
-  //   //ищем точки, которые вхожят в треугольники, в которые входимы мы
-  //   var my_triangles_points = [];
-  //   my_triangles.forEach(function(triangle) {
-  //     triangle.forEach(function(number) {
-  //       if (number != vertices.length - 1 && my_triangles_points.indexOf(number) == -1){
-  //         my_triangles_points.push(number);
-  //       }
-  //     }, this);
-  //   }, this);
-   
-  //   //из найденных точек берем ту, которая в Делоне встречается реже всех (до нее должно быть возможно проложить путь)
-  //   var min_count = 999999;  
-  //   var min_count_path = undefined;
-  //   var max_dist = 0;  
-
-  //   for(var i = 0; i < my_triangles_points.length; ++i){
-
-  //     var number = my_triangles_points[i];
-  //     var target = targets[number];     
-
-  //     if (graph.grid[target.x][target.y].weight == 0) continue;
-  //     var end = graph.grid[target.x][target.y];
-  //     var path = astar.search(graph, start, end);  
-  //     if (path.length == 0) continue;
-
-  //     //targets_str += target.x + " " + target.y + "   ";
-      
-
-  //     //берем точку с минильным числом вхождений в триангуляцию - граничную точку    
-  //     // var count = delone.filter(p => p == number).length;
-  //     // if (count < min_count){
-  //     //   min_count = count;
-  //     //   min_count_path = path;
-  //     // }  
-
-  //     //2 вариант - брать ближайшую точку к нам
-  //     // if (path.length < min_count){
-  //     //   min_count = path.length;
-  //     //   min_count_path = path;
-  //     // }  
-
-  //     //3 вариант - берем точку, наиболее удаленную от центра
-  //     var dist = get_manhatten_dist(target.x, target.y, screen_height/2, 20);
-  //     if (dist > max_dist){
-  //       max_dist = dist;
-  //       min_count_path = path;
-  //     }  
-
-  //   }    
- 
-  //   return min_count_path;      
-  // } 
-
-
-  //УГОЛ
-  // var max_angle = 0;
-  // var min_length = 999999;
-  // var angle_shortest_path = undefined;  
-  // var length_shortest_path = undefined;
-  // for (let i = 0; i < targets.length; i++){
-  //   var target = targets[i];
-  //   if (graph.grid[target.x][target.y].weight == 0) continue;
-
-  //   var end = graph.grid[target.x][target.y];
-  //   var path = astar.search(graph, start, end);  
-  //   if (path.length == 0) continue;
-
-  //   var target_vector = {x: target.x - start.x, y: target.y - start.y};
-  //   var center_vector = {x: screen_height / 2 - start.x, y : 20 - start.y};//TODO
-  //   var angle = Math.abs(get_vectors_angle(target_vector, center_vector));
-
-  //   if (angle > Math.PI / 2 && angle > max_angle){
-  //     max_angle = angle;
-  //     angle_shortest_path = path;
-  //   }
-
-  //   if (path.length < min_length){
-  //     min_length = path.length;
-  //     length_shortest_path = path;
-  //   }
-  // }
-
-  // return angle_shortest_path != undefined ? angle_shortest_path : length_shortest_path;
-
+function get_shortest_path(start, targets, graph, use_delone){ 
   //Просто ближайшая точка
 	var min_dist = 999999;
   var shortest_path = undefined;  
@@ -1391,243 +1276,6 @@ BinaryHeap.prototype = {
 
 
 
-var Delaunay;
-var EPSILON = 1.0 / 1048576.0;
-
-function supertriangle(vertices) {
-  var xmin = Number.POSITIVE_INFINITY,
-      ymin = Number.POSITIVE_INFINITY,
-      xmax = Number.NEGATIVE_INFINITY,
-      ymax = Number.NEGATIVE_INFINITY,
-      i, dx, dy, dmax, xmid, ymid;
-
-  for(i = vertices.length; i--; ) {
-    if(vertices[i][0] < xmin) xmin = vertices[i][0];
-    if(vertices[i][0] > xmax) xmax = vertices[i][0];
-    if(vertices[i][1] < ymin) ymin = vertices[i][1];
-    if(vertices[i][1] > ymax) ymax = vertices[i][1];
-  }
-
-  dx = xmax - xmin;
-  dy = ymax - ymin;
-  dmax = Math.max(dx, dy);
-  xmid = xmin + dx * 0.5;
-  ymid = ymin + dy * 0.5;
-
-  return [
-    [xmid - 20 * dmax, ymid -      dmax],
-    [xmid            , ymid + 20 * dmax],
-    [xmid + 20 * dmax, ymid -      dmax]
-  ];
-}
-
-function circumcircle(vertices, i, j, k) {
-  var x1 = vertices[i][0],
-      y1 = vertices[i][1],
-      x2 = vertices[j][0],
-      y2 = vertices[j][1],
-      x3 = vertices[k][0],
-      y3 = vertices[k][1],
-      fabsy1y2 = Math.abs(y1 - y2),
-      fabsy2y3 = Math.abs(y2 - y3),
-      xc, yc, m1, m2, mx1, mx2, my1, my2, dx, dy;
-
-  /* Check for coincident points */
-  if(fabsy1y2 < EPSILON && fabsy2y3 < EPSILON)
-    throw new Error("Eek! Coincident points!");
-
-  if(fabsy1y2 < EPSILON) {
-    m2  = -((x3 - x2) / (y3 - y2));
-    mx2 = (x2 + x3) / 2.0;
-    my2 = (y2 + y3) / 2.0;
-    xc  = (x2 + x1) / 2.0;
-    yc  = m2 * (xc - mx2) + my2;
-  }
-
-  else if(fabsy2y3 < EPSILON) {
-    m1  = -((x2 - x1) / (y2 - y1));
-    mx1 = (x1 + x2) / 2.0;
-    my1 = (y1 + y2) / 2.0;
-    xc  = (x3 + x2) / 2.0;
-    yc  = m1 * (xc - mx1) + my1;
-  }
-
-  else {
-    m1  = -((x2 - x1) / (y2 - y1));
-    m2  = -((x3 - x2) / (y3 - y2));
-    mx1 = (x1 + x2) / 2.0;
-    mx2 = (x2 + x3) / 2.0;
-    my1 = (y1 + y2) / 2.0;
-    my2 = (y2 + y3) / 2.0;
-    xc  = (m1 * mx1 - m2 * mx2 + my2 - my1) / (m1 - m2);
-    yc  = (fabsy1y2 > fabsy2y3) ?
-      m1 * (xc - mx1) + my1 :
-      m2 * (xc - mx2) + my2;
-  }
-
-  dx = x2 - xc;
-  dy = y2 - yc;
-  return {i: i, j: j, k: k, x: xc, y: yc, r: dx * dx + dy * dy};
-}
-
-function dedup(edges) {
-  var i, j, a, b, m, n;
-
-  for(j = edges.length; j; ) {
-    b = edges[--j];
-    a = edges[--j];
-
-    for(i = j; i; ) {
-      n = edges[--i];
-      m = edges[--i];
-
-      if((a === m && b === n) || (a === n && b === m)) {
-        edges.splice(j, 2);
-        edges.splice(i, 2);
-        break;
-      }
-    }
-  }
-}
-
-Delaunay = {
-  triangulate: function(vertices, key) {
-    var n = vertices.length,
-        i, j, indices, st, open, closed, edges, dx, dy, a, b, c;
-
-    /* Bail if there aren't enough vertices to form any triangles. */
-    if(n < 3)
-      return [];
-
-    /* Slice out the actual vertices from the passed objects. (Duplicate the
-      * array even if we don't, though, since we need to make a supertriangle
-      * later on!) */
-    vertices = vertices.slice(0);
-
-    if(key)
-      for(i = n; i--; )
-        vertices[i] = vertices[i][key];
-
-    /* Make an array of indices into the vertex array, sorted by the
-      * vertices' x-position. Force stable sorting by comparing indices if
-      * the x-positions are equal. */
-    indices = new Array(n);
-
-    for(i = n; i--; )
-      indices[i] = i;
-
-    indices.sort(function(i, j) {
-      var diff = vertices[j][0] - vertices[i][0];
-      return diff !== 0 ? diff : i - j;
-    });
-
-    /* Next, find the vertices of the supertriangle (which contains all other
-      * triangles), and append them onto the end of a (copy of) the vertex
-      * array. */
-    st = supertriangle(vertices);
-    vertices.push(st[0], st[1], st[2]);
-    
-    /* Initialize the open list (containing the supertriangle and nothing
-      * else) and the closed list (which is empty since we havn't processed
-      * any triangles yet). */
-    open   = [circumcircle(vertices, n + 0, n + 1, n + 2)];
-    closed = [];
-    edges  = [];
-
-    /* Incrementally add each vertex to the mesh. */
-    for(i = indices.length; i--; edges.length = 0) {
-      c = indices[i];
-
-      /* For each open triangle, check to see if the current point is
-        * inside it's circumcircle. If it is, remove the triangle and add
-        * it's edges to an edge list. */
-      for(j = open.length; j--; ) {
-        /* If this point is to the right of this triangle's circumcircle,
-          * then this triangle should never get checked again. Remove it
-          * from the open list, add it to the closed list, and skip. */
-        dx = vertices[c][0] - open[j].x;
-        if(dx > 0.0 && dx * dx > open[j].r) {
-          closed.push(open[j]);
-          open.splice(j, 1);
-          continue;
-        }
-
-        /* If we're outside the circumcircle, skip this triangle. */
-        dy = vertices[c][1] - open[j].y;
-        if(dx * dx + dy * dy - open[j].r > EPSILON)
-          continue;
-
-        /* Remove the triangle and add it's edges to the edge list. */
-        edges.push(
-          open[j].i, open[j].j,
-          open[j].j, open[j].k,
-          open[j].k, open[j].i
-        );
-        open.splice(j, 1);
-      }
-
-      /* Remove any doubled edges. */
-      dedup(edges);
-
-      /* Add a new triangle for each edge. */
-      for(j = edges.length; j; ) {
-        b = edges[--j];
-        a = edges[--j];
-        open.push(circumcircle(vertices, a, b, c));
-      }
-    }
-
-    /* Copy any remaining open triangles to the closed list, and then
-      * remove any triangles that share a vertex with the supertriangle,
-      * building a list of triplets that represent triangles. */
-    for(i = open.length; i--; )
-      closed.push(open[i]);
-    open.length = 0;
-
-    for(i = closed.length; i--; )
-      if(closed[i].i < n && closed[i].j < n && closed[i].k < n)
-        open.push(closed[i].i, closed[i].j, closed[i].k);
-
-    /* Yay, we're done! */
-    return open;
-  },
-  contains: function(tri, p) {
-    /* Bounding box test first, for quick rejections. */
-    if((p[0] < tri[0][0] && p[0] < tri[1][0] && p[0] < tri[2][0]) ||
-        (p[0] > tri[0][0] && p[0] > tri[1][0] && p[0] > tri[2][0]) ||
-        (p[1] < tri[0][1] && p[1] < tri[1][1] && p[1] < tri[2][1]) ||
-        (p[1] > tri[0][1] && p[1] > tri[1][1] && p[1] > tri[2][1]))
-      return null;
-
-    var a = tri[1][0] - tri[0][0],
-        b = tri[2][0] - tri[0][0],
-        c = tri[1][1] - tri[0][1],
-        d = tri[2][1] - tri[0][1],
-        i = a * d - b * c;
-
-    /* Degenerate tri. */
-    if(i === 0.0)
-      return null;
-
-    var u = (d * (p[0] - tri[0][0]) - b * (p[1] - tri[0][1])) / i,
-        v = (a * (p[1] - tri[0][1]) - c * (p[0] - tri[0][0])) / i;
-
-    /* If we're outside the tri, fail. */
-    if(u < 0.0 || v < 0.0 || (u + v) > 1.0)
-      return null;
-
-    return [u, v];
-  }
-};
- 
-
-
-
-
-
-
-
-
 function GAInitialize() {
   countDistances();
   for(var i=0; i<POPULATION_SIZE; i++) {
@@ -1947,16 +1595,11 @@ function Point(x, y) {
   this.x = x;
   this.y = y;
 }
-function randomPoint() {
-  var randomx = randomNumber(WIDTH);
-  var randomy = randomNumber(HEIGHT);
-  var randomPoint = new Point(randomx, randomy);
-  return randomPoint; 
-}
 function randomNumber(boundary) {
   return parseInt(Math.random() * boundary);
   //return Math.floor(Math.random() * boundary);
 }
+
 function distance(p1, p2) {
   return euclidean(p1.x-p2.x, p1.y-p2.y);
 }
@@ -1965,12 +1608,8 @@ function euclidean(dx, dy) {
 }
 
 
-var canvas, ctx;
-var WIDTH = 40;
-var HEIGHT = 20;
 var points = [];
 var running;
-var canvasMinX, canvasMinY;
 var doPreciseMutate;
 
 var POPULATION_SIZE;
@@ -2012,12 +1651,6 @@ function initData() {
   roulette = new Array(POPULATION_SIZE);
 }
 
-function addRandomPoints(number) {
-  running = false;
-  for(var i = 0; i<number; i++) {
-    points.push(randomPoint());
-  }
-}
 
 function draw() {
   while(running) {
