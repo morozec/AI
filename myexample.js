@@ -1285,10 +1285,10 @@ exports.play = function*(screen){
 
     // if (min_kill_stone != undefined){
     //   console.log("\n\nResult stone: "+min_kill_stone.stone.butt_x + " " + min_kill_stone.stone.butt_y+"                      ");
-    //   console.log("self: " + self.x + " " + self.y + "                        ");
+    //   //console.log("self: " + self.x + " " + self.y + "                        ");
     // }
     // else {
-    //   console.log("\nstone is undefined                                   ");
+    //   console.log("\n\nstone is undefined                                   ");
     // }
    
     let is_leaving = false;
@@ -1324,17 +1324,17 @@ exports.play = function*(screen){
       }
       
     }
-    else if (min_kill_stone != undefined && self.x == min_kill_stone.stone.butt_x && self.y == min_kill_stone.stone.y){
+    else if (min_kill_stone != undefined && self.x == min_kill_stone.stone.butt_x && self.y == min_kill_stone.stone.butt_y){
         //console.log("going up\n");
       is_up = true;     
     }
     
    
-    if (is_waiting){
+    if (is_waiting){      
       yield '';
       continue;
     }
-    else if (is_up){
+    else if (is_up){      
       yield 'u';
       continue;
     }
@@ -1427,39 +1427,14 @@ exports.play = function*(screen){
       var ok_diamonds = get_ok_targets(diamonds, self, graph);
 
       if (ok_diamonds.length >= 2){
-        shortest_path = get_path(diamonds, ok_diamonds, self, screen, graph); 
-
-        // console.log("\n");
-        // var res= "";
-        // var index = tsp_index;      
-        // if (is_forward_tsp){  
-        //   for (var i = index; i < best.length; ++i){
-        //     var best_i = best[i];
-        //     res += points[best_i].x +","+ points[best_i].y +"  " ;
-        //   }
-        //   for (var i = 0; i < index; ++i){
-        //     var best_i = best[i];
-        //     res += points[best_i].x +","+ points[best_i].y +"  " ;
-        //   }
-        // }
-        // else{
-        //   for (var i = index; i >=0 ; --i){
-        //     var best_i = best[i];
-        //     res += points[best_i].x +","+ points[best_i].y +"  " ;
-        //   }
-        //   for (var i = best.length - 1; i > index; --i){
-        //     var best_i = best[i];
-        //     res += points[best_i].x +","+ points[best_i].y +"  " ;
-        //   }
-        // }
-        // console.log(res);
+        shortest_path = get_path(diamonds, ok_diamonds, self, screen, graph);        
       
       }
       else if(ok_diamonds.length == 1){
         var ok_diamond = ok_diamonds[0];
         shortest_path = astar.search(graph, start, graph.grid[ok_diamond.x][ok_diamond.y]);
-      }
-     
+      }    
+      
     }
          
     
@@ -1553,6 +1528,7 @@ exports.play = function*(screen){
       //   move='u';
       // }
     }
+  
     yield move;
     
 
@@ -2386,6 +2362,8 @@ var traversed = [];
 var butt_dirs=[];
 
 let explosion_zones = [];
+
+let counter = 0;
 
 
 //  var screen = 
