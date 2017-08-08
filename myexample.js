@@ -1235,6 +1235,16 @@ exports.play = function*(screen){
       butt_dirs[index].x = butt.x; 
       butt_dirs[index].y = butt.y; 
       butt_dirs[index].dir = b_path[1].dir; 
+
+      if (butt_dirs[index].is_ignored){
+        butt_dirs[index].kill_time--;
+        if (butt_dirs[index].kill_time < 0){//по какой-то причине не смогли убить бабочку
+          butt_dirs[index].is_ignored = false;
+          console.log("\nButt is alive");
+        }
+          
+      }
+
     
       butt_pathes.push(b_path);       
     }
@@ -1316,20 +1326,21 @@ exports.play = function*(screen){
 
       if (min_kill_stone.step_time < min_kill_stone.time){//валим отсюда
         //TODO: сделать остальные точки butt_x проходимыми
-        //console.log("\nVALIM                          ");
+        console.log("\nVALIM                          ");
         is_leaving = true;
         
         
         let butt = butt_pathes[min_kill_stone.butt_pathes_index][0];
         let index = butt_dirs.findIndex(bd => get_manhatten_dist(butt.x, butt.y, bd.x, bd.y) <= 1);
-        butt_dirs[index].is_ignored = true;        
+        butt_dirs[index].is_ignored = true;    
+        butt_dirs[index].kill_time = min_kill_stone.step_time;    
        
         min_kill_stone = get_min_kill_stone(
           butt_pathes, butt_kill_stones, self, graph);
          
       }
       else {
-         //console.log("\nwait for leaving");
+        console.log("\nwait for leaving");
         //console.log(min_kill_stone.path_x + " " + min_kill_stone.path_y);
         //kill_stone.step_time--;//бабочка приближается
         is_waiting = true;
