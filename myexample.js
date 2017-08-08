@@ -1114,10 +1114,15 @@ function get_ok_targets(targets, start, graph){
 }
 
 
-function get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, wrong_stone){
+function get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph){
   var min_time = 999999;
   var min_kill_stone = undefined;
+  let butt_pathes_index = -1;
   for (let i =0; i < butt_pathes.length; ++i){
+
+    let butt = butt_pathes[i][0];
+    let index = butt_dirs.findIndex(bd => get_manhatten_dist(butt.x, butt.y, bd.x, bd.y) <= 1);
+    if (butt_dirs[index].is_ignored) continue;
     
     let path = butt_pathes[i];
 
@@ -1129,15 +1134,14 @@ function get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, wrong_st
     }      
    
     var kill_stone = get_butt_kill_min_time_stone(butt_kill_stones[i], path, self, graph);
-    if (wrong_stone != undefined && kill_stone != undefined &&
-      kill_stone.stone.x == wrong_stone.x && kill_stone.stone.y == wrong_stone.y) continue;
-
+    
     if (kill_stone != undefined && kill_stone.time < min_time){
 
       //console.log("time: " + kill_stone.time);
 
       min_time = kill_stone.time;
       min_kill_stone = kill_stone;
+      min_kill_stone.butt_pathes_index = i;
       //console.log("\n" + kill_stone.stone.x + " " + kill_stone.stone.y+ "                     ");
     }
     else{
@@ -1145,6 +1149,8 @@ function get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, wrong_st
     }
   
   }
+
+ 
 
   return min_kill_stone;
 }
@@ -1200,7 +1206,7 @@ exports.play = function*(screen){
 
     if (butts.length > 0 && butt_dirs.length == 0){
       butts.forEach(function(butt) {
-        butt_dirs.push({x:butt.x, y:butt.y, dir:UP});
+        butt_dirs.push({x:butt.x, y:butt.y, dir:UP, is_ignored:false});
       }, this);
     }
 
@@ -1275,7 +1281,7 @@ exports.play = function*(screen){
     //   console.log("\n"+path_str+"\n");    
 
    
-    let min_kill_stone = get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, undefined);
+    let min_kill_stone = get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph);
 
 
 
@@ -1312,9 +1318,15 @@ exports.play = function*(screen){
         //TODO: сделать остальные точки butt_x проходимыми
         //console.log("\nVALIM                          ");
         is_leaving = true;
+        
+        
+        let butt = butt_pathes[min_kill_stone.butt_pathes_index][0];
+        let index = butt_dirs.findIndex(bd => get_manhatten_dist(butt.x, butt.y, bd.x, bd.y) <= 1);
+        butt_dirs[index].is_ignored = true;        
        
-        min_kill_stone = get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, 
-          {x: min_kill_stone.stone.x, y: min_kill_stone.stone.y});
+        min_kill_stone = get_min_kill_stone(
+          butt_pathes, butt_kill_stones, self, graph);
+         
       }
       else {
          //console.log("\nwait for leaving");
