@@ -224,11 +224,50 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen){
     // }
 
     let kill_time = 0;
+    let path_to_butt_x = undefined;
+    let butt_x_time = undefined;
       
-    let end = graph.grid[stone.butt_x][stone.butt_y];
-  
-    let path_to_butt_x = astar.search(graph, start, end);
-    let butt_x_time = path_to_butt_x.length;
+   
+
+    let is_dying = true;
+    while(is_dying){
+      is_dying = false;
+      
+      let end = graph.grid[stone.butt_x][stone.butt_y];  
+      path_to_butt_x = astar.search(graph, start, end);
+      butt_x_time = path_to_butt_x.length;
+
+      for (let i = 0; i < butt_x_time; ++i){
+        let self_point = path_to_butt_x[i];
+
+
+        let index = i % path.length + 1;
+        if (index == path.length) index = 0;
+        //console.log("\n" + index);
+        let butt_point = path[index];
+        let dist = get_manhatten_dist(self_point.x, self_point.y, butt_point.x, butt_point.y);
+        if (dist == 0){
+          graph.grid[self_point.x][self_point.y].weight = 0;
+          is_dying = true;
+          break;
+        }
+        else if (dist == 1){
+          if (butt_point.x < self_point.x){
+            graph.grid[self_point.x][self_point.y].weight = 0;
+            is_dying = true;
+            break;
+          }
+          else if (butt_point.x == self_point.x && butt_point.y < self_point.y){
+            graph.grid[self_point.x][self_point.y].weight = 0;
+            is_dying = true;
+            break;
+          }
+        }
+      }
+    }
+   
+
+    //строим путь до тех пор, пока не найдем путь, на котором не встретится бабочка
     kill_time += path_to_butt_x.length;
 
 
@@ -284,7 +323,13 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen){
         break;
       }
     }
+
+    // if (stone.y <= 12){
+    //   console.log("\n"+is_dangerous);
+    // }
+
     
+
 
 
     if (!is_dangerous){
@@ -461,6 +506,7 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen){
     }
   }, this);
 
+  
  
   
   // if (min_stone != undefined && min_stone.stone.butt_x - min_stone.stone.x == 1){
@@ -1250,6 +1296,15 @@ function get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, screen){
     // }
   
   }  
+
+  // if (min_kill_stone != undefined){
+  //   console.log("\n\n");
+  //   let res_str = "";
+  //   for (let i = 0; i < min_kill_stone.dangerous_path.length; ++i){
+  //     res_str += min_kill_stone.dangerous_path[i].x  + "," + min_kill_stone.dangerous_path[i].y + " ";
+  //   }
+  //   console.log("\n"+res_str+"                                                   ");
+  // }
  
 
   return min_kill_stone;
@@ -1636,7 +1691,8 @@ exports.play = function*(screen){
     }
     
    
-    if (is_waiting){      
+    if (is_waiting){     
+      console.log("\nShortest path is found"); 
       yield '';
       continue;
     }
@@ -1709,7 +1765,8 @@ exports.play = function*(screen){
 
       //TODO: подумать о том, чтобы стоять и ждать
 
-      // if (shortest_path != undefined && shortest_path.length > 0 && prev_kill_stone != undefined && 
+
+        // if (shortest_path != undefined && shortest_path.length > 0 && prev_kill_stone != undefined && 
       //   prev_kill_stone.butt_x == min_kill_stone.butt_x && prev_kill_stone.butt_y == min_kill_stone.butt_y){
       //     if (shortest_path.length < prev_path.length){
       //       is_waiting = true;
@@ -1717,6 +1774,58 @@ exports.play = function*(screen){
       //     shortest_path = prev_path;
       //     prev_kill_stone = min_kill_stone;
       //  }
+
+      // let bp = butt_pathes[min_kill_stone.butt_pathes_index];
+      // let next_step_graph_0 = init_graph(screen, self, 0);
+      // let next_step_graph_1 = init_graph(screen, self, 1);
+
+      // let next_step_path = [];
+      // for (let i = 1; i < butt_pathes.length; ++i){
+      //   next_step_path.push(bp[i]);
+      // }
+      // next_step_path.push(bp[0]);
+      // let next_step_pathes = [];
+      // for (let i = 0; i < butt_pathes.length;++i){
+      //   if (i == min_kill_stone.butt_pathes_index){
+      //     next_step_pathes.push(next_step_path);
+      //   }
+      //   else{
+      //     next_step_pathes.push(butt_pathes[i]);
+      //   }
+      // }
+
+      // set_movable_stones_weight(screen, self, next_step_graph_0);   
+      // set_movable_stones_weight(screen, self, next_step_graph_1);         
+
+      // set_trap_diamonds(diamonds, screen, next_step_graph_0); 
+      // set_trap_diamonds(diamonds, screen, next_step_graph_1); 
+
+      // set_exploded_butts_weight(next_step_graph_0);
+      // set_exploded_butts_weight(next_step_graph_1);
+      
+      // afraid_of_explotion(butt_pathes, falling_stones, self, next_step_graph_0);    
+      // afraid_of_explotion(butt_pathes, falling_stones, self, next_step_graph_1);    
+
+      // afraid_of_butterfly(next_step_pathes, next_step_graph_0, self);
+      // afraid_of_butterfly(next_step_pathes, next_step_graph_1, self);
+
+    
+
+      // end = next_step_graph_0.grid[min_kill_stone.stone.butt_x][min_kill_stone.stone.butt_y];
+      // end.weight = 1;
+
+      // //console.log("\nend: " + end.x + " " + end.y + "                                               ");
+      // let next_step_shortest_path = astar.search(next_step_graph_0, start, end);
+      // if (next_step_shortest_path == undefined || next_step_shortest_path.length == 0){
+      //   end = next_step_graph_1.grid[min_kill_stone.stone.butt_x][min_kill_stone.stone.butt_y];
+      //   end.weight = 1;
+      //   next_step_shortest_path = astar.search(next_step_graph_1, start, end);
+      // }
+
+      // if (next_step_shortest_path != undefined && next_step_shortest_path.length > 0 &&
+      //   next_step_shortest_path.length < shortest_path.length){
+      //     is_waiting = true;
+      //   }
      
     }
 
