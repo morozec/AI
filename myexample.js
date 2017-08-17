@@ -10,14 +10,7 @@ function find_targets(target_types, screen){
         {
           if (target_types.includes(screen[x][y])){
             diamonds.push({x, y});           
-          }
-          // else if (find_butts){
-          //   if ('/-\\'.includes(screen[x][y])){
-          //     if (is_closed_butt(screen, x, y, [])){
-          //       diamonds.push({x, y});
-          //     }
-          //   }
-          // }
+          }         
         }		
     }  
 	return diamonds;
@@ -30,30 +23,12 @@ function get_butt_kill_stones(butt_pathes, screen, graph, falling_stones){
   for (let i = 0; i < butt_pathes.length; ++i){
 
     let bp = butt_pathes[i];
-    let stones = [];
-    // let wrong_stones = [];
+    let stones = [];   
     
     bp.forEach(function(point) {
       let x = point.x;
       let y = point.y;
 
-      // if (wrong_stones.findIndex(ws => ws.y == y) > -1) {
-      //   stones.push(undefined);
-      //   return; 
-      // }
-      
-      
-       //если камень лежит прямо над проходом, мы не сможем им убить
-      //  if ('O*'.includes(screen[x-1][y])){
-      //    wrong_stones.push({x:x-1, y:y});
-      //  }
-      // else if ('O*'.includes(screen[x-1][y-1])){ //мы будем стоять на расст. 1 слева или справа от бабочки
-      //   wrong_stones.push({x:x-1, y:y-1});
-      // }
-      // else if ('O*'.includes(screen[x-1][y+1])){
-      //   wrong_stones.push({x:x-1, y:y+1});
-      // }
-      
 
       let can_kill = false;    
       let is_dirt_found = false; 
@@ -103,8 +78,7 @@ function get_butt_kill_stones(butt_pathes, screen, graph, falling_stones){
           is_dirt_found = true;
         }
         
-        else if ('+#'.includes(screen[x][y])){
-          //console.log("\n" + x + " " + y);
+        else if ('+#'.includes(screen[x][y])){        
           break;
         }        
       }
@@ -128,10 +102,7 @@ function get_butt_kill_stones(butt_pathes, screen, graph, falling_stones){
           return;
         }
       }, this);
-
-      if (point.x == 16 && point.y ==2){
-        console.log(can_kill);
-      }
+    
       
       //==0, если там бабочка 
       if (can_kill && is_dirt_found && graph.grid[dirt_x][butt_y].weight != 0 && has_leaving_way && !is_under_falling_stone){          
@@ -175,8 +146,7 @@ function get_through_butts_path(self, dest_x, dest_y, graph, diamond_graph, butt
         path_to_dest = astar.search(graph, start, end);
         dest_time = path_to_dest.length;
 
-        if (path_to_dest.length == 0 && (self.x != dest_x || self.y != dest_y)){
-          // console.log("\nIS DYING0" );
+        if (path_to_dest.length == 0 && (self.x != dest_x || self.y != dest_y)){       
           is_dying = true;
           break;
         }
@@ -186,8 +156,7 @@ function get_through_butts_path(self, dest_x, dest_y, graph, diamond_graph, butt
 
 
           let index = i % path.length + 1;
-          if (index == path.length) index = 0;
-          //console.log("\n" + index);
+          if (index == path.length) index = 0;        
           let butt_point = path[index];
       
 
@@ -249,36 +218,13 @@ function get_through_butts_path(self, dest_x, dest_y, graph, diamond_graph, butt
 
 
 function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond_graph, all_butt_pathes, path_index){
-   
+    
   
-  
-  // stones.forEach(function(s) {
-  //   console.log(s.x + " " + s.y);
-  // }, this);
+ 
   let start = graph.grid[self.x][self.y];
 
   let ok_stones = [];
-  let legs = 0;
-  //console.log(path[0]);
-
-  // let res_path="";
-  // path.forEach(function(p) {
-  //   res_path += p.x + "," + p.y +","+p.dir+" ";
-  // }, this);
-  // console.log(res_path);
-
-
-  
-  // for (let i = 0; i < path.length; ++i){
-  //   let step = path[i];
-    
-  //   let stone = stones[i];
-  //   if (stone == undefined) continue;
-  //   //делаем точку, держащую камень непроходимой
-  //   if (stone.butt_x - stone.x == 1){
-  //     graph.grid[stone.butt_x][stone.y].weight = 0;
-  //   }
-  // }
+  let legs = 0; 
 
   let close_butt_points = [];
 
@@ -287,169 +233,17 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
     let step = path[i];
     if (stone == undefined) continue;
 
-    if (step.x <= stone.x) continue;
-
-    //собираем список точек, встав на которые мы изменим путь бабочки
-    // let change_path_points = [];
-
-    // if (stone.y == stone.butt_y){ //TODO: боковые камни
-    //   let x = stone.x + 1;
-    //   let left_y = stone.y - 1;
-    //   let right_y = stone.y + 1;
-
-    //   let close_points_indexes = [];
-
-    //   for (let k = 0; k < path.length; ++k){
-    //     let p = path[k];
-    //     //console.log("\n" + x + " " + left_y);
-    //     if (graph.grid[x][left_y].weight == 1 && screen[x][left_y] == ':' && get_manhatten_dist(p.x, p.y, x, left_y) == 1){
-    //       close_points_indexes.push(k);
-    //     }
-    //     if (graph.grid[x][right_y].weight == 1 && screen[x][right_y] == ':' && get_manhatten_dist(p.x, p.y, x, right_y) == 1){
-    //       close_points_indexes.push(k);
-    //     }
-    //   }
-
-      
-
-    //   close_points_indexes.forEach(function(cpi) {
-    //     let dir = path[cpi].dir;
-    //     let left_dir = ccw(dir);
-    //     let left_coord = get_new_coords(path[cpi], left_dir);       
-
-    //     //если точка слева от пути, добавляем ее в список
-    //     if (left_coord.x == x && left_coord.y == left_y){
-    //       change_path_points.push({x:x, y: left_y});
-    //     }
-    //     else if (left_coord.x == x && left_coord.y == right_y){
-    //       change_path_points.push({x:x, y: right_y});
-    //     }
-    //     else{ //если точка прямо, а путь идет вправо, добавляем ее в список
-    //       let straight_coords = get_new_coords(path[cpi], dir);
-    //       let next_index = cpi < path.length - 1 ? cpi + 1 : 0;
-    //       let next_step = path[next_index]; 
-    //       let right_dir = cw(dir); 
-
-    //       if (straight_coords.x == x && straight_coords.y == left_y && next_step.dir == right_dir){ 
-    //         change_path_points.push({x:x, y: left_y});        
-    //       }
-    //       else if (straight_coords.x == x && straight_coords.y == right_y && next_step.dir == right_dir){ 
-    //         change_path_points.push({x:x, y: right_y});        
-    //       }
-    //     }
-
-    //   }, this);
-    // }
-
-    // // if (self.x == stone.x +1 && self.y == stone.y)
-    // //   {
-    // //     console.log("\n" + self.x + " " + self.y);
-    // //     for (let k = 0; k < change_path_points.length; ++k){
-    // //       console.log(change_path_points[k].x + " " + change_path_points[k].y);
-    // //     }
-    // //   }
-      
-
-    // change_path_points.forEach(function(cpp) {
-    //   graph.grid[cpp.x][cpp.y].weight = 0;
-    //   diamond_graph.grid[cpp.x][cpp.y].weight = 0;
-    // }, this);   
-
-
-    // if (stone.butt_x - stone.x == 1){
-    //   graph.grid[stone.butt_x][stone.y].weight = 1;
-    // }
-
-
-
+    if (step.x <= stone.x) continue;   
 
     //строим путь к бабочке - так, чтобы бабочка не помешала нам на этом пути
 
     let kill_time = 0;
-    // let path_to_butt_x = undefined;
-    // let butt_x_time = undefined;
-      
-    // let end = graph.grid[stone.butt_x][stone.butt_y];  
-    // path_to_butt_x = astar.search(graph, start, end);
-    // butt_x_time = path_to_butt_x.length;
-
-    // let is_dying = true;
-
-    // let close_butt_points_curr=[];
-   
-    // while(is_dying){
-    //   is_dying = false;  
-      
-    //   let end = graph.grid[stone.butt_x][stone.butt_y];  
-    //   path_to_butt_x = astar.search(graph, start, end);
-    //   butt_x_time = path_to_butt_x.length;
-
-    //   if (path_to_butt_x.length == 0 && (self.x != stone.butt_x || self.y != stone.butt_y)){
-    //     // console.log("\nIS DYING0" );
-    //     is_dying = true;
-    //     break;
-    //   }
-
-    //   for (let i = 0; i < butt_x_time; ++i){
-    //     let self_point = path_to_butt_x[i];
-
-
-    //     let index = i % path.length + 1;
-    //     if (index == path.length) index = 0;
-    //     //console.log("\n" + index);
-    //     let butt_point = path[index];
-     
-
-    //     let dist = get_manhatten_dist(self_point.x, self_point.y, butt_point.x, butt_point.y);
-    //     if (dist == 0){
-    //       graph.grid[self_point.x][self_point.y].weight = 0;
-    //       diamond_graph.grid[self_point.x][self_point.y].weight = 0;
-    //       close_butt_points_curr.push(self_point);
-          
-    //       is_dying = true;
-    //       break;
-    //     }
-    //     else if (dist == 1){
-    //       if (butt_point.x < self_point.x){
-    //         graph.grid[self_point.x][self_point.y].weight = 0;
-    //         diamond_graph.grid[self_point.x][self_point.y].weight = 0;
-    //         close_butt_points_curr.push(self_point);
-    //         is_dying = true;
-    //         break;
-    //       }
-    //       else if (butt_point.x == self_point.x && butt_point.y < self_point.y){
-    //         graph.grid[self_point.x][self_point.y].weight = 0;
-    //         diamond_graph.grid[self_point.x][self_point.y].weight = 0;
-    //         close_butt_points_curr.push(self_point);
-    //         is_dying = true;
-    //         break;
-    //       }
-    //     }
-    //     else if (dist == 2 && i < butt_x_time - 1){
-    //       let next_self_point = path_to_butt_x[i + 1];
-    //       let next_self_point_dist = get_manhatten_dist(next_self_point.x, next_self_point.y, butt_point.x, butt_point.y);
-    //       let is_my_step_early = self_point.x < butt_point.x || self_point.x == butt_point.x && self_point.y < butt_point.y;
-    //       if (next_self_point_dist == 1 && is_my_step_early && 
-    //         (next_self_point.x < butt_point.x || next_self_point.y < butt_point.y)){
-
-    //         graph.grid[self_point.x][self_point.y].weight = 0;
-    //         diamond_graph.grid[self_point.x][self_point.y].weight = 0;
-    //         close_butt_points_curr.push(self_point);
-    //         is_dying = true;
-    //         break;
-    //       }
-    //     }
-    //   }
-
-
-    // }
- 
+    
     let result = get_through_butts_path(self, stone.butt_x, stone.butt_y, graph, diamond_graph, all_butt_pathes);
     let is_dying = result.is_dying;
     let close_butt_points_curr = result.close_butt_points;
     let butt_x_time = result.dest_time;
     let path_to_butt_x = result.path_to_dest;
-
 
 
     close_butt_points_curr.forEach(function(cbpc) {
@@ -458,15 +252,9 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
     }, this);
     
 
-    if (is_dying){
-      //console.log("\nIS DYING" );
+    if (is_dying){     
       continue;
     } 
-  //  else if (stone.butt_x == 9 && stone.butt_y == 3){
-  //     //console.log("\n" + path_to_butt_x.length + "                                               ");
-  //    console.log("\n"+self_path_str + "                                                                         ");
-  //     console.log(butt_path_str + "                                                         ");
-  //   }
    
 
     //строим путь до тех пор, пока не найдем путь, на котором не встретится бабочка
@@ -486,20 +274,11 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
           
     kill_time += step.x - stone.x; //время падения камня на бабочку
 
-    //console.log(kill_time);
+    
+    let legs_count = Math.floor(kill_time/path.length);  
+       
 
-
-    let legs_count = Math.floor(kill_time/path.length);
    
-    //butt_x_time %= path.length; //убираем лишние круги бабочки
-    //kill_time %= path.length;
-
-
-    
-    
-    
-
-    //TODO: хреново работает!
     //строим путь бабочки, пока мы идем от butt_x, butt_y до момента убийства - 1
     let is_dangerous = false;
     let dangerous_path=[];   
@@ -577,69 +356,7 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
        
         path_to_kill_length++;
       }
-    }
-
-    
-    // let butt_steps_kill_times = []; 
-    // for (let k=0; k<all_butt_pathes.length; ++k){
-    //   butt_steps_kill_times.push(butt_steps_butt_xs[k]);
-    // }    
-  
-    // while (butt_steps_kill_times[path_index] < i - 1){
-    //   steps++;
-    //   for (let k=0; k<all_butt_pathes.length; ++k){
-    //     let butt_path = all_butt_pathes[k];
-    //     dangerous_path.push(butt_path[butt_steps_kill_times[k]]);
-
-    //     if (butt_steps_kill_times[k] + 1 > butt_path.length - 1){
-    //       butt_steps_kill_times[k] = 0;
-    //     } 
-    //     else{
-    //       butt_steps_kill_times[k]++;
-    //     }
-    //   }      
-     
-    // }
-
-    // if (butt_steps_kill_times[path_index] + 1 < kill_time){ //не успеем убить бабочку на 1 круге 
-    //   while (butt_steps_kill_times[path_index] != i){        
-
-    //     for (let k=0; k<all_butt_pathes.length; ++k){
-
-    //       let butt_path = all_butt_pathes[k];
-
-    //       if (butt_steps_kill_times[k] + 1 > butt_path.length - 1){
-    //         butt_steps_kill_times[k] = 0;
-    //       }
-    //       else{
-    //         butt_steps_kill_times[k]++;
-    //       }
-         
-    //       dangerous_path.push(butt_path[butt_steps_kill_times[k]]);
-    //     }
-
-    //     //dangerous_path.push(path[butt_steps_kill_time]);
-    //   }
-    // }
-
-   
-   
-
-    // if (kill_time <= i + 1){ //успеем убить бабочку на 1 круге 
-    //   for (let j = butt_x_time; j < i; ++j){
-    //     dangerous_path.push(path[j]);
-    //   }
-    // }
-    // else{ //бабочка пройдет путь от butt_x_time до конца пути, потом от начала пути до i
-      
-    //   for (let j = butt_x_time; j < path.length; ++j){
-    //     dangerous_path.push(path[j]);
-    //   }
-    //   for (let j = 0; j < i; ++j){
-    //     dangerous_path.push(path[j]);
-    //   }      
-    // }
-
+    }    
    
     //если бабочка окажется рядом с точкой (butt_x, butt_y), этот камень нам не подходит  
     for (let k = 0; k < dangerous_path.length; ++k){
@@ -648,32 +365,14 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
         is_dangerous = true;
         break;
       }
-    }
-
-    // if (stone.butt_x==15 && stone.butt_y == 2){
-    //   console.log("\n\nSelf: " + self.x +"," + self.y + " " + "                                              ");
-    //   let res_str = "";
-    //   dangerous_path.forEach(function(dp) {
-    //    res_str += dp.x + "," + dp.y + " ";
-    //   }, this);
-    //   console.log(res_str + "                                                   ");
-    //  // console.log("\n\n" + i + " " +  dangerous_path.length + " " + is_dangerous);
-    //   // console.log("\n\n" + kill_time + "                                                          ");
-    // }
+    } 
 
    
     //TODO: мы откроем путь бабочке при уходе
     let prev_step = path[i > 0 ? i - 1 : path.length - 1];
     let is_not_killable = stone.y == stone.butt_y && graph.grid[stone.x + 1][stone.y + 1].weight == 0 &&
-      step.x - stone.x == 2 && prev_step.y == stone.y - 1; 
-    
-    //let is_not_killable = false;
-    // if (i==2){
-    //   //console.log("\n " + is_dangerous)
-    //   is_dangerous = false
-    // }
-
-
+      step.x - stone.x == 2 && prev_step.y == stone.y - 1;     
+   
   
     if (!is_dangerous && !is_not_killable){
       let new_stone = {
@@ -687,13 +386,7 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
         //change_path_points:change_path_points
       };         
       ok_stones.push(new_stone);  
-    }
-    // else{
-    //   change_path_points.forEach(function(cpp) {
-    //     graph.grid[cpp.x][cpp.y].weight = 1;
-    //     diamond_graph.grid[cpp.x][cpp.y].weight = 1;
-    //   }, this);   
-    // }    
+    }  
   }
 
   
@@ -730,42 +423,10 @@ function get_butt_kill_min_time_stone(stones, path, self, graph, screen, diamond
         diamond_graph.grid[cbc.x][cbc.y].weight = 1;
       }
     }, this);
-  }
-
-  //возвращаем веса 1 точкам, которые могут сменить путь бабочки
-  // ok_stones.forEach(function(os) {    
-  //   if (os.stone.x != min_stone.stone.x || os.stone.y != min_stone.stone.y){
-  //     os.change_path_points.forEach(function(cpp) {
-  //       graph.grid[cpp.x][cpp.y].weight = 1;
-  //       diamond_graph.grid[cpp.x][cpp.y].weight = 1;
-  //     }, this);   
-  //   }
-  // }, this);
-
-  
+  } 
+ 
  
   
-  // if (min_stone != undefined && min_stone.stone.butt_x - min_stone.stone.x == 1){
-  //   graph.grid[min_stone.stone.butt_x][min_stone.stone.y].weight = 1;
-  // }
-  
-
-  // if (min_stone != undefined && min_stone.path_x > 15){
-  //   console.log("\n\n" + min_stone.stone.butt_x + " " + min_stone.stone.butt_y + '                                           ')
-  // }
-
-  // if (min_stone != undefined && min_stone.path_x > 15){
-  //   let dp_str = "";
-  //   min_stone.dangerous_path.forEach(function(dp) {
-  //     dp_str += dp.x + "," + dp.y + " ";
-  //   }, this);
-  //   console.log("\n\n"+dp_str +"                                    ");    
-  // }
-  // else{
-  //   console.log("\n\nno way                     ");
-  // }
-
-  //console.log(min_stone.path_x + " " + min_stone.path_y);
   return min_stone;  
 }
 
@@ -1040,11 +701,6 @@ function afraid_of_explotion(butt_pathes, falling_stones, self, graph, screen){
 
       expl_x = bp_1.x;
       expl_y = bp_1.y;
-
-      // if (index > -1){
-      //   console.log("Self: " + self.x + " " + self.y);
-      //   console.log("\nExplosion:" + expl_x + " " + expl_y);
-      // }
     }
 
     //находимся в эпицентре взрыва. TODO: все равно взорвемся
@@ -1266,11 +922,6 @@ function afraid_of_butterfly(butt_pathes, graph, self, screen){
       if (bp.length <= 1) return;
       let bp_1 = bp[1];
 
-      //мое место займет камень - бабочка не сможет меня убить - ерунда
-      // if (bp_1.x == self.x && bp_1.y == self.y && 'O*'.includes(screen[self.x-1][self.y])) {               
-      //   return;
-      // }
-
       x = bp_1.x + 1; 
       y = bp_1.y;     
 
@@ -1304,47 +955,10 @@ function afraid_of_butterfly(butt_pathes, graph, self, screen){
         graph.grid[x][y].weight = 0;
       }
 
-      // console.log("\nself: " + self.x + " " + self.y);
-      // console.log(x + " " + y);
-
     }
   }, this);
-
-  // for (let i = 0; i < butts.length; ++i){     
-  //   set_butt_weights(screen, graph, butts[i], self, butt_graph);
-  // }
+ 
 }
-
-//TODO - наработки
-// function afraid_of_no_way(falling_stones, butt_pathes, screen, self){
-//   let x = self.x + 1;
-//   let y = self.y;
-
-//   let is_stone_above = is_stone_above(x, y, falling_stones);
-//   let is_dangerous_butt = is_dangerous_butt(x, y, butt_pathes);
-
-// }
-
-// function is_stone_above(x, y, falling_stones){
-//   let index = falling_stones.findIndex(fs => fs.x == x - 2 && fs.y == y);
-//   return index > -1;
-// }
-
-// function is_no_way_point(x, y, screen){
-//   return '+#O'.includes(x,y);
-// }
-
-// function is_dangerous_butt(x, y, butt_pathes){
-//   let is_dangerous = false;
-//   butt_pathes.forEach(function(bp) {
-//     if (bp.length <= 1) return;
-//     let bp_1 = bp[1];
-//     if (get_manhatten_dist(bp_1.x, bp_1.y, x, y) == 1 && (bp_1.x < x || bp_1.y < y)){
-//       is_dangerous = true;
-//     }
-//   }, this);
-//   return is_dangerous;
-// }
 
 
 
@@ -1421,7 +1035,7 @@ function afraid_of_falling_stones(falling_stones, graph, self_x, self_y){
 }
 
 //метод ищет падающие камни и алмазы. помечает соотвествующие точки непроходимыми
-function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){ 
+function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y, diamonds_weight){ 
 
   //определяем координаты камней на данном шаге
   let new_stones = [];
@@ -1435,11 +1049,7 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
     }
   }
 
-  // if (stones.length == 0) {
-  //   stones = new_stones;
-  //   return;
-  // }
-      
+
   //ищем падающие камни
   let falling_stones = [];
   let no_way_points = [];
@@ -1457,11 +1067,15 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
 
     //под ним пусто. упадет на этот ход    
     if (screen[x+1][y]==' '){  
-      graph.grid[x+1][y].weight = 0;    
-      no_way_points.push({x:x+1, y:y});
+      if (screen[x][y]=='*' && diamonds_weight == 1){
+
+      }
+      else{
+        graph.grid[x+1][y].weight = 0;    
+        no_way_points.push({x:x+1, y:y});
+      }
       if(x < screen_height - 2){  
-        // let self_dist = get_manhatten_dist(self_x, self_y, x + 2, y);  
-        // if (self_dist == 1) 
+       
         graph.grid[x+2][y].weight = 0;    
         no_way_points.push({x:x+2, y:y});
       }   
@@ -1475,8 +1089,7 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
     //падает влево
     if (isDangerousBottom && x < screen_height - 1 && y > 0 && 
       screen[x][y-1]==' ' && screen[x+1][y-1]==' ' && screen[x+1][y] != ' ' && screen[x+1][y] != 'A'){
-        // let self_dist = get_manhatten_dist(self_x, self_y, x + 1, y - 1);  
-        // if (self_dist == 1)  
+      
         graph.grid[x+1][y-1].weight = 0;   
         no_way_points.push({x:x+1, y:y-1});
         isFalling = true;           
@@ -1486,29 +1099,13 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
     //падает вправо
     if (isDangerousBottom && x < screen_height - 1 && y < screen[x].length - 1 && 
       screen[x][y+1]==' ' && screen[x+1][y+1]==' ' && screen[x+1][y] != ' ' && screen[x+1][y] != 'A'){
-        // let self_dist = get_manhatten_dist(self_x, self_y, x + 1, y + 1);  
-        // if (self_dist == 1) 
+       
         graph.grid[x+1][y+1].weight = 0;  
         no_way_points.push({x:x+1, y:y+1});
         isFalling = true;          
         next_x = x;
         next_y = y + 1;
-    }    
-
-    //if (stones.length == 0) continue; //1 ход
-
-    //падал на прошлом ходу
-    // let isStableStone = false;
-    // for (let j = 0; j < stones.length; ++j){
-    //   if (stones[j].x == new_stones[i].x && stones[j].y == new_stones[i].y){
-    //     isStableStone = true;
-    //     break;
-    //   }
-    // }
-    // if (!isStableStone){
-    //   next_x = x;
-    //   next_y = y;     
-    // }
+    }      
 
     if (isFalling){
       falling_stones.push({x:new_stones[i].x, y:new_stones[i].y, next_x:next_x, next_y:next_y, no_way_points });
@@ -1541,10 +1138,21 @@ function afraid_of_stones_and_diamonds(screen, graph, self_x, self_y){
 function set_trap_diamonds(diamonds, screen, graph){
   for (let i = 0; i < diamonds.length; ++i){
     let diamond = diamonds[i];
-    if (is_trap(diamond, screen)){
+    if (is_trap(diamond, screen) || is_bottom_trap(diamond, screen, graph)){
       graph.grid[diamond.x][diamond.y].weight = 0;
     }
   }
+}
+
+function is_bottom_trap(diamond, screen,graph){
+  if (diamond.x != screen_height - 2) return false;
+  if (graph.grid[diamond.x-1][diamond.y].weight == 0 &&
+    (graph.grid[diamond.x-1][diamond.y-1].weight == 0 && screen[diamond.x-1][diamond.y+1]=='O' ||
+    graph.grid[diamond.x-1][diamond.y+1].weight == 0 && screen[diamond.x-1][diamond.y-1]=='O')){
+      return true;
+    }
+
+  return false;
 }
 
 function is_trap(diamond, screen){
@@ -1603,8 +1211,8 @@ function is_new_ok_targets(targets, graph, start){
 }
 
 //Строит путь TSP
-function build_tsp_way(targets, self, graph, screen){
-  //console.log("\nNew way                                                   ")
+function build_tsp_way(targets, self, graph, screen, butt_pathes){
+ 
   points = [];//список точек для алгоримта TSP 
   traversed = [];
   let start = graph.grid[self.x][self.y];
@@ -1619,14 +1227,11 @@ function build_tsp_way(targets, self, graph, screen){
   GAInitialize();
   running = true;
   draw();
-
-  // console.log("\n"+points.length);
-  // console.log("\n"+best.length);
+ 
 
   let self_index = best.indexOf(points.length - 1);
   traversed.push(self_index);
-  calc_tps_direction(self_index, self, graph);
-  //console.log("\n" + is_forward_tsp);
+  calc_tps_direction(self_index, self, graph); 
   
   if (is_forward_tsp){
     tsp_index = self_index < points.length - 1 ? self_index + 1 : 0;
@@ -1638,13 +1243,14 @@ function build_tsp_way(targets, self, graph, screen){
 
   let diamond = points[best[tsp_index]];   
   let end = graph.grid[diamond.x][diamond.y]; 
-  let shortest_path = astar.search(graph, start, end);
+  //let shortest_path = astar.search(graph, start, end);
+  let shortest_path = 
+    get_through_butts_path(self, diamond.x, diamond.y, graph, graph, butt_pathes).path_to_dest;
   return shortest_path;
 }
 
 //Метод вычисляет направление обхода результата TSP - вперед или назад (зависит от расстояния)
-function calc_tps_direction(curr_tsp_index, self, graph){
-  //console.log("\n!!!");
+function calc_tps_direction(curr_tsp_index, self, graph){ 
 
   let start = graph.grid[self.x][self.y];
 
@@ -1657,16 +1263,11 @@ function calc_tps_direction(curr_tsp_index, self, graph){
   while(traversed.indexOf(prev_index) > -1){   
       prev_index = prev_index > 0 ? prev_index - 1 : best.length - 1;   
   }
-  // console.log("\n"+best.length);
-  // console.log(next_index);
-  // console.log(prev_index);
-   
+ 
 
   let next_target = points[best[next_index]];
   let prev_target = points[best[prev_index]];
 
-  // console.log("\n" + next_target.x + " " + next_target.y);
-  //  console.log(prev_target.x + " " + prev_target.y);
 
   let next_end = graph.grid[next_target.x][next_target.y];
   let next_path = astar.search(graph, start, next_end);
@@ -1674,32 +1275,34 @@ function calc_tps_direction(curr_tsp_index, self, graph){
   let prev_end = graph.grid[prev_target.x][prev_target.y];
   let prev_path = astar.search(graph, start, prev_end);
 
-  if (next_path.length == 0 || prev_path.length == 0){
-    console.log("Нулевой путь")
-    throw ("Нулевой путь");
-  }
+  // if (next_path.length == 0){
+  //   console.log("Нулевой путь вперед")
+  //   throw ("Нулевой путь");
+  // }
 
-  // console.log("\n");
-  // console.log(next_path.length);
-  // console.log(prev_path.length);
+  // if (prev_path.length == 0){
+  //   console.log("Нулевой путь назад")
+  //   throw ("Нулевой путь");
+  // }
 
-  is_forward_tsp = next_path.length < prev_path.length;
+  if (next_path.length == 0) is_forward_tsp = false;
+  else if (prev_path.length == 0) is_forward_tsp = true;
+  else  
+    is_forward_tsp = next_path.length < prev_path.length;
 }
 
-function get_path(new_diamonds, new_ok_diamonds, self, screen, graph){
-
+function get_path(new_diamonds, new_ok_diamonds, self, screen, graph, butt_pathes){
   
 
   let shortest_path = undefined;
   let start = graph.grid[self.x][self.y];
 
   //если новых алмазов больше чем было, перестраиваем TSP 
-  if (new_ok_diamonds.length > ok_diamonds.length) {
-    // console.log("\nNEW DIAMONDS OR NO DIAMONDS!!!!");
+  if (new_ok_diamonds.length > ok_diamonds.length) {  
     ok_diamonds = new_ok_diamonds;      
     all_diamonds = new_diamonds;
     initData();  
-    shortest_path = build_tsp_way(new_ok_diamonds, self, graph, screen);
+    shortest_path = build_tsp_way(new_ok_diamonds, self, graph, screen, butt_pathes);
     return shortest_path;
   }
  
@@ -1743,45 +1346,28 @@ function get_path(new_diamonds, new_ok_diamonds, self, screen, graph){
 
   }
 
-  //console.log("\n"+new_diamonds.length+"                                                  ");
-
-  // if (!all_diamonds_are_stable)
-  //   {
-  //      console.log("\n\n!all_diamonds_are_stable " );
-  //   }
-  //     else if (!all_prev_ok_diamonds_are_ok){
-  //       console.log("\n\n !all_prev_ok_diamonds_are_ok" );
-  //     }
  
 
   //координаты алмазов изменились или появились новые доступные или старые доступные стали недоступными
   if (!all_diamonds_are_stable || !all_prev_ok_diamonds_are_ok){    
     //console.log("\n\nUPDATE TSP!!!!");
     initData();
-    shortest_path = build_tsp_way(new_ok_diamonds,self, graph,screen);   
+    shortest_path = build_tsp_way(new_ok_diamonds,self, graph,screen, butt_pathes);   
   } 
-  // else if (is_new_ok_targets(new_ok_diamonds, graph, start)){ //координаты не изменились, но некоторые стали доступными
-  //   //console.log("\nNEW TARGETS!!!!");
-  //   initData();
-  //   shortest_path = build_tsp_way(new_ok_diamonds,self, graph,screen);   
-  // } 
+ 
   else if (new_diamonds.length < all_diamonds.length || 
     self.x == points[best[tsp_index]].x && self.y == points[best[tsp_index]].y){  //число всех алмазов умееньшилось - мы собрали 1   
-
-     //console.log("\n\nLess diamonds" );
+ 
 
     let diamond = points[best[tsp_index]];   
     let is_planed = self.x == diamond.x && self.y == diamond.y;
 
-    if (is_planed){
-      //console.log("\n\nLESS DIAMONDS - PLANED!!!!");   
+    if (is_planed){    
       traversed.push(tsp_index);     
 
       //1 подход - после взятия алмаза пересчитываем направление - идем к ближайшему
-      calc_tps_direction(tsp_index, self, graph);     
-  
-      
-      //2 подход - сохраняем направление
+      calc_tps_direction(tsp_index, self, graph);            
+     
       if (is_forward_tsp){   
         while(traversed.indexOf(tsp_index) > -1){   
           tsp_index = tsp_index < best.length - 1 ? tsp_index + 1 : 0;    
@@ -1793,38 +1379,31 @@ function get_path(new_diamonds, new_ok_diamonds, self, screen, graph){
         }
       }
 
+       //2 подход - сохраняем направление
      
     }
     else{
-      console.log("\n\nLESS DIAMONDS - RANDOM!!!!");   
+      // console.log("\n\nLESS DIAMONDS - RANDOM!!!!");   
 
             
       let random_diamond_index = points.findIndex(p => p.x == self.x && p.y == self.y);
       let random_tsp_index = best.indexOf(random_diamond_index);    
-      traversed.push(random_tsp_index);
-      //calc_tps_direction(tsp_index, self, graph);   
-
-      
-      // ok_diamonds = new_ok_diamonds;      
-      // all_diamonds = new_diamonds;
-      // initData();  
-      // shortest_path = build_tsp_way(new_ok_diamonds, self, graph, screen);
-      // return shortest_path;
+      traversed.push(random_tsp_index);      
 
     } 
     
     let res_diamond = points[best[tsp_index]];   
     let end = graph.grid[res_diamond.x][res_diamond.y];
-    shortest_path = astar.search(graph, start, end);   
+    shortest_path = 
+      get_through_butts_path(self, res_diamond.x, res_diamond.y, graph, graph, butt_pathes).path_to_dest;
    
   }
-  else{ //с алмазами ничего не произошло. двигаемся дальше
-    //console.log("\n\nMOVE NEXT!!!!");   
-    let diamond = points[best[tsp_index]];   
-    //console.log("\n\nDiamond: " + diamond.x + " " + diamond.y);
+  else{ //с алмазами ничего не произошло. двигаемся дальше    
+    let diamond = points[best[tsp_index]];     
     let end = graph.grid[diamond.x][diamond.y];
    
-    shortest_path = astar.search(graph, start, end);
+    shortest_path = 
+      get_through_butts_path(self, diamond.x, diamond.y, graph, graph, butt_pathes).path_to_dest;
   }
  
   ok_diamonds = new_ok_diamonds;  
@@ -1874,34 +1453,20 @@ function get_min_kill_stone(butt_pathes, butt_kill_stones, self, graph, screen, 
     let path = butt_pathes[i];
 
     let def_index = butt_kill_stones[i].findIndex(bks => bks != undefined);
-    //console.log(butt_kill_stones[0]);
-
+  
     if (def_index == -1){
       continue;
     }      
    
     let kill_stone = get_butt_kill_min_time_stone(butt_kill_stones[i], path, self, graph, screen, diamond_graph, butt_pathes, i);
-    // if (kill_stone != undefined)
-    //   console.log("\n"+kill_stone.time + "                                             ");
     
     if (kill_stone != undefined && kill_stone.step_time < min_time){
-
-      //console.log("time: " + kill_stone.time);
-
-      //console.log("\n" + kill_stone.step_time + "                                               ");
-
+     
       min_time = kill_stone.step_time;
       min_kill_stone = kill_stone;
       min_kill_stone.butt_pathes_index = i;
-      //console.log("\n" + kill_stone.stone.x + " " + kill_stone.stone.y+ "                     ");
-    }
-    else{
-      //console.log("\nundefined tmp stone                              ");
-    }
-
-    // if (path[0].x > 15){
-    //   console.log("\n" + kill_stone.stone.x + " " + kill_stone.stone.y+ "                     ");
-    // }
+     
+    }    
   
   }  
 
@@ -1937,14 +1502,10 @@ function get_butts_change_path_path(butt_pathes, graph, screen, self){
     let butt= bp[0];
     let index = butt_dirs.findIndex(bd => get_manhatten_dist(butt.x, butt.y, bd.x, bd.y) <= 1);
     
-    //console.log("\n" +butt_dirs[index].is_ignored);
-
     if (butt_dirs[index].is_ignored) return;
 
-    //console.log("\n\nNot ignored                                               ");
-
     let point_container = get_butt_change_path_path(bp, graph, screen, self);
-    //console.log("\n" + point_container.min_dist_point);
+   
     if (point_container.min_dist_path != undefined && point_container.min_dist < min_dist){
       min_dist = point_container.min_dist;
       min_dist_path = point_container.min_dist_path;
@@ -2091,8 +1652,8 @@ exports.play = function*(screen){
     set_trap_diamonds(diamonds, screen, diamonds_1_graph); 
         
     //Чтобы на нас не упал камень
-    let falling_stones = afraid_of_stones_and_diamonds(screen, diamonds_0_graph, self.x, self.y);
-    afraid_of_stones_and_diamonds(screen, diamonds_1_graph, self.x, self.y);  
+    let falling_stones = afraid_of_stones_and_diamonds(screen, diamonds_0_graph, self.x, self.y, 0);
+    afraid_of_stones_and_diamonds(screen, diamonds_1_graph, self.x, self.y, 1);  
 
     let movebale_stones_0 = set_movable_stones_weight(screen, self, diamonds_0_graph, falling_stones);   
     let movebale_stones_1 = set_movable_stones_weight(screen, self, diamonds_1_graph, falling_stones);   
@@ -2110,8 +1671,7 @@ exports.play = function*(screen){
       }
     }
 
-
-    //let got_indexes = [];
+  
     //удаляем butt_dirs убитых бабочек
     for (let i = butt_dirs.length - 1; i >= 0; --i){
       let bd = butt_dirs[i];
@@ -2145,11 +1705,7 @@ exports.play = function*(screen){
           ok_butts.push(k);
         }
       }
-      if (ok_butts.length == 0){
-        console.log("\nNo butts ");
-        throw "No butt dir";
-      }
-      else if (ok_butts.length == 1){
+      if (ok_butts.length == 1){
         got_butts.push(ok_butts[0]); 
         got_bds.push(i);     
         bd.index = ok_butts[0];
@@ -2172,11 +1728,7 @@ exports.play = function*(screen){
         }
       }
 
-      if (ok_bds.length == 0){
-        console.log("\nNo butt dirs ");
-        throw "No butt dir";
-      }
-      else if (ok_bds.length == 1){
+     if (ok_bds.length == 1){
          butt_dirs[ok_bds[0]].index = k;
          got_butts.push(k);
          got_bds.push(ok_bds[0]);
@@ -2192,8 +1744,7 @@ exports.play = function*(screen){
         }
 
         if (moving_ok_bds.length == 0){
-          not_set_butts.push(k);
-          //console.log("\n"+k);
+          not_set_butts.push(k);        
         }
         else if (moving_ok_bds.length == 1){
           butt_dirs[moving_ok_bds[0]].index = k;
@@ -2219,8 +1770,7 @@ exports.play = function*(screen){
           }
 
           let res_bd = butt_dirs[moving_ok_bds[min_index]];
-          console.log("\nBds:" + res_bd.x + " " + res_bd.y  + "                                                     ");
-
+         
           res_bd.index = k;
           got_butts.push(k);
           got_bds.push(moving_ok_bds[min_index]);
@@ -2240,185 +1790,34 @@ exports.play = function*(screen){
         }
       }
 
-      if (ok_bds.length == 0){
-        console.log("\nNo butt dirs final");
-        throw "No butt dir fianl";
-      }
-      else if (ok_bds.length == 1){
+     if (ok_bds.length == 1){
         butt_dirs[ok_bds[0]].index = not_set_butts[k];
         got_butts.push(not_set_butts[k]);
         got_bds.push(ok_bds[0]);
       }
-      else{
-        console.log("\Too many butt dirs final");
-        throw "Too many butt dir final";
-      }
+      // else{
+      //   console.log("\Too many butt dirs final");
+      //   throw "Too many butt dir final";
+      // }
     }
 
    
-    // let wrong_point = undefined;
-
-    // for (let k =0; k < butts.length; ++k){
-    //   let butt=butts[k];       
-
-    //   let bds = [];
-
-    //   for (let j = 0; j < butt_dirs.length; ++j){
-    //     let bd = butt_dirs[j];
-        
-    //     if (get_manhatten_dist(bd.x, bd.y, butt.x, butt.y)<= 1){
-    //       bds.push(bd);
-    //     }
-    //   }
-
-    //   if (bds.length == 0){
-    //     console.log("\nNo butt dir " + butt_dirs.length);
-    //     throw "No butt dir";
-    //   }
-    //   else if (bds.length == 1){
-    //     bds[0].index = k;
-    //   }
-    //   else{
-
-    //     let bds2= [];
-    //     bds.forEach(function(bd) {
-    //       let next_point = get_next_moving_object_point({x: bd.x, y: bd.y, dir: bd.dir_prev}, screen, wrong_point);
-    //       if (next_point.x == butt.x && next_point.y == butt.y){
-    //         bds2.push(bd);
-    //       }
-    //     }, this);
-
-    //     if (bds2.length == 0){
-    //       console.log("\nNo butt dir2 " + k);
-    //       throw "No butt dir";
-    //     }
-    //     else if (bds2.length == 1){
-    //       bds2[0].index = k;
-    //     }
-    //     else{
-    //       wrong_point = butt;
-    //       let min_x = 9999999;
-    //       let min_y = 9999999;
-    //       let min_index = 999999;
-    //       for (let j = 0; j < bds2.length; ++j){
-    //         let bd = bds2[j];
-    //         if (bd.x < min_x){
-    //           min_x = bd.x;
-    //           min_y = bd.y;
-    //           min_index = j;
-    //         }
-    //         else if (bd.x == min_x && bd.y < min_y){
-    //           min_x = bd.x;
-    //           min_y = bd.y;
-    //           min_index = j;
-    //         }
-    //       }
-
-    //       bds2[min_index].index = k;
-    //     }
-    //   }
-
-    // }
-
-
-
-    
-    //   let index = undefined;
-    //   if (indexes.length == 0){//эту бабочку убили       
-    //     butt_dirs.splice(i, 1);         
-    //     continue;
-    //   }
-    //   else if (indexes.length == 1){
-    //     index = indexes[0];
-    //   }
-    //   else{//бежим по всем бабочкам сверху вниз. берем первую, которая хотела в эту точку
-    //     //console.log("\nbd: " + bd.x + ", " + bd.y + "                   " );
-    //     let next_point = get_next_moving_object_point({x: bd.x, y: bd.y, dir: bd.dir_prev}, screen);
-    //     //console.log("next_point: " + next_point.x + ", " + next_point.y + "                   " );
-    //     for (let k =0; k < butts.length; ++k){
-    //       let butt=butts[k];          
-    //       //console.log("butt: " + butt.x + ", " + butt.y + "                   " );
-          
-    //       if (next_point.x == butt.x && next_point.y == butt.y){
-    //         index = k;
-    //         //console.log("\n" + next_point.x + " " + next_point.y + "             ");
-    //         break;
-    //       }
-    //     }
-    //   }
-
-    //   if (got_indexes.indexOf(index) > -1){
-    //     let another_butt = butts[index];
-
-    //     console.log("\n" + another_butt.x + " " + another_butt.y);
-
-    //     let next_point = get_next_moving_object_point({x: bd.x, y: bd.y, dir: bd.dir_prev}, screen, another_butt);
-
-    //      console.log("\n" + bd.x + " " + bd.y + " " + bd.dir_prev);
-    //      console.log("\n" + next_point.x + " " + next_point.y);
-
-    //     for (let k =0; k < butts.length; ++k){
-    //       let butt=butts[k]; 
-                   
-    //       if (next_point.x == butt.x && next_point.y == butt.y){
-    //         index = k;          
-    //         break;
-    //       }
-    //     }
-
-    //      console.log(index);
-    //   }
-    //   got_indexes.push(index);
-    //   bd.index = index;
-
-    //   //console.log("\nbd: " + bd.x + ", " + bd.y + "    butt_index: " + index + "                   " );
       
-    // }
-
-   
     let butt_pathes = [];    
     for (let i = 0; i < butts.length; ++i){
       let butt = butts[i];
-      let b_path = [];
-  
-      // let index = butt_dirs.findIndex(bd => get_manhatten_dist(butt.x, butt.y, bd.x, bd.y) == 0);
-      // if (index == -1){      
-      //   index = butt_dirs.findIndex(bd => get_manhatten_dist(butt.x, butt.y, bd.x, bd.y) == 1); 
-
-      //   if (index == -1){      
-      //     console.log("\nbutt_dirs not found");
-      //     for (let k = 0; k < butt_dirs.length; ++k){
-      //       console.log(butt_dirs[k].x + " " + butt_dirs[k].y);
-      //     }
-      //     console.log("This butt: " + butt.x + " " + butt.y)
-      //     throw "";
-      //   }
-      // }
+      let b_path = [];  
+     
 
       let bd_index = butt_dirs.findIndex(p => p.index == i);    
 
       if (bd_index == -1) bd_index = 1;
 
-      //console.log("\n"+got_butts[0] + " " + got_butts[1] + " " );
-      
       let bd = butt_dirs[bd_index];
-      //console.log("\n"+bd_index);
-
-      //console.log("\nButt:" + butt.x + " " + butt.y + "                                                      ");
       
-      get_butt_path({x: butt.x, y: butt.y, dir: bd.dir}, screen, b_path, falling_stones);
+      get_butt_path({x: butt.x, y: butt.y, dir: bd.dir}, screen, b_path, falling_stones);     
 
-      // if (butt.y <= 15){
-      //   console.log("\n\n" + b_path[0].x + "," + b_path[0].y);
-      //   console.log(b_path[1].x + "," + b_path[1].y);
-      //   console.log(falling_stones.length);
-      // }
-
-      if (b_path.length <= 1){
-        console.log("\nno butt path");
-        throw "";
-      }
-     
+      
       bd.x = butt.x; 
       bd.y = butt.y; 
       bd.dir = b_path[1].dir; 
@@ -2427,11 +1826,10 @@ exports.play = function*(screen){
       if (bd.is_ignored){
         bd.kill_time--;
 
-
        
         if (bd.kill_time < 0){//по какой-то причине не смогли убить бабочку
           bd.is_ignored = false;
-          console.log("\nButt is alive");
+          //console.log("\nButt is alive");
         }
         else{ //ставим веса точек, куда м. свернуть убиваемамя бабочка на 0
            for (let i = 0; i < bd.kill_time; ++i){
@@ -2469,15 +1867,6 @@ exports.play = function*(screen){
     set_movable_stones_butt_weight(screen, self, diamonds_1_graph, butt_pathes, movebale_stones_1);   
 
 
-     
-    //afraid_of_butterfly(screen, graph, self, butts, butt_graph);
-   
-   
-    // for (let i = 0; i < butt_pathes[0].length; ++i){
-    //   console.log(butt_pathes[0][i].x + " " + butt_pathes[0][i].y + " " + butt_pathes[0][i].dir);
-    // }
-
-
     for (let i = explosion_zones.length - 1; i >=0; --i){
       let ez = explosion_zones[i];
       if (++ez.stage > 3){
@@ -2502,56 +1891,14 @@ exports.play = function*(screen){
   
     afraid_of_falling_stones(falling_stones, diamonds_0_graph, self.x, self.y);
     afraid_of_falling_stones(falling_stones, diamonds_1_graph, self.x, self.y);
-
-    // console.log("\n");
-    // for (let i = 0; i<screen_height; i++){
-    //     let res ="";
-    //     for (let j = 0; j<screen[i].length; j++) {
-    //       if (self.x == i && self.y == j){
-    //         res += "A";
-    //       }          
-                    
-    //       else {
-    //         res += diamonds_0_graph.grid[i][j].weight;
-    //       }
-        
-    //     }
-    //     console.log(res);
-    //   }		 
+ 
    
     let butt_kill_stones = get_butt_kill_stones(butt_pathes, screen, diamonds_0_graph, falling_stones); 
     
-    // let ppp = butt_pathes[1];
-    //  let path_str = "";
-    //   for (let i = 0; i < ppp.length; ++i){
-    //     path_str += ppp[i].x + "," + ppp[i].y + " ";  
-    //   }
-    //   console.log("\n"+path_str+"\n");  
     
-        
-
-   
     let min_kill_stone = get_min_kill_stone(
       butt_pathes, butt_kill_stones, self, diamonds_0_graph, screen, diamonds_1_graph);
 
-      
-
-
-
-
-
-    //if (min_kill_stone == undefined) console.log("\n\n\nstone is undefined                                   ");
-     
-
-
-    // if (min_kill_stone != undefined){
-    //   console.log("\n\nResult stone: "+min_kill_stone.stone.butt_x + " " + min_kill_stone.stone.butt_y+"                      ");
-    //   console.log("self: " + self.x + " " + self.y + "                        ");
-    // }
-    // else {
-    //   console.log("\n\nstone is undefined                                   ");
-    // }
-   
     let is_leaving = false;
     let is_up = false;
     let is_waiting = false;
@@ -2571,10 +1918,8 @@ exports.play = function*(screen){
     if (is_empty_butt_point && 
       (is_up_stone && self.x == min_kill_stone.stone.x + 1 && self.y == min_kill_stone.stone.y 
       || is_side_stone && self.x == min_kill_stone.stone.x && self.y == min_kill_stone.stone.butt_y)){
-        
-      //console.log((butt_kill_stone.step_time - 1) + " " + (butt_kill_stone.time - 1));
-
-      console.log(min_kill_stone.step_time + " " + min_kill_stone.time + "                        ");
+       
+      //console.log(min_kill_stone.step_time + " " + min_kill_stone.time + "                        ");
 
       if (is_under_falling_stone || min_kill_stone.step_time == min_kill_stone.time - 1){//валим отсюда
         //TODO: сделать остальные точки butt_x проходимыми
@@ -2622,20 +1967,17 @@ exports.play = function*(screen){
         butt_dirs[index].kill_time = min_kill_stone.step_time;    
        
         min_kill_stone = get_min_kill_stone(
-          butt_pathes, butt_kill_stones, self, diamonds_0_graph, screen, diamonds_1_graph);
-
-        // console.log(min_kill_stone);
+          butt_pathes, butt_kill_stones, self, diamonds_0_graph, screen, diamonds_1_graph);      
          
       }     
       else{
-        //console.log("\n\nwait for leaving                                         ");
-
+      
         is_waiting = true;
       }
       
     }
     else if (min_kill_stone != undefined && self.x == min_kill_stone.stone.butt_x && self.y == min_kill_stone.stone.butt_y){
-        //console.log("going up\n");
+       
       is_up = true;     
     }
 
@@ -2652,14 +1994,11 @@ exports.play = function*(screen){
     }
     else if (is_leaving){ 
 
-      
-      
+            
       //TODO: иногда можно идти вниз
       
       diamonds_0_graph.grid[self.x+1][self.y].weight = 0;
       diamonds_1_graph.grid[self.x+1][self.y].weight = 0;
-
-      //TODO: можно есть, если нет пути
      
      
       if (is_up_stone){
@@ -2685,63 +2024,21 @@ exports.play = function*(screen){
         diamonds_0_graph.grid[self.x][self.y+1].weight = 0; //чтобы не съел алмаз
         diamonds_1_graph.grid[self.x][self.y+1].weight = 0; //чтобы не съел алмаз
       }
-      else{
-        console.log("What stone?");
-        throw("What stone?");
-      }
+      
       
     } 
 
-
-    // console.log("\n");
-    //   for (let i = 0; i<screen_height; i++){
-    //     let res ="";
-    //     for (let j = 0; j<screen[i].length; j++) {
-    //       if (self.x == i && self.y == j){
-    //         res += "A";
-    //       }
-    //       else if ("/|\\-".includes(screen[i][j])){
-    //         res += "-";
-    //       }
-                    
-    //       else {
-    //         res += diamonds_1_graph.grid[i][j].weight;
-    //       }
-        
-    //     }
-    //     console.log(res);
-    //   }		 
-
-   
-
-    //console.log(butt_kill_stone.stone.butt_x + " " + butt_kill_stone.stone.y);
     
-     
-    //console.log("\n" + kill_stone.stone.butt_x + " " + kill_stone.stone.y + " " +  kill_stone.time);
-     
-    
-    //let butt_kill_path = get_butt_kill_path(butt_kill_stones, self, graph, screen);
-
-    // let last = butt_kill_path[butt_kill_path.length - 1];
-    //  console.log("\n" + last.x + " " + last.y);
-
-    // butt_kill_stones.forEach(function(bks) {
-    //  console.log(butt_kill_path.x + " " + butt_kill_path.y);  
-    // }, this);
-
-
     let shortest_path = undefined;
     let res_graph = undefined;  
-    //shortest_path = get_shortest_path(self, close_butts, graph, false);
-
+    
     //сначала убиваем бабочек
     if (min_kill_stone != undefined){
       //console.log("\n\nУБИВАЕМ БАБОЧКУ" + min_kill_stone.stone.butt_x + " " + min_kill_stone.stone.butt_y + "                                                ");
-      //set_targets_weight(diamonds, diamonds_0_graph, 0);
+     
       let end = diamonds_0_graph.grid[min_kill_stone.stone.butt_x][min_kill_stone.stone.butt_y];
       end.weight = 1;
-
-      //console.log("\nend: " + end.x + " " + end.y + "                                               ");
+     
       shortest_path = astar.search(diamonds_0_graph, start, end);
       res_graph = diamonds_0_graph;
       if (shortest_path == undefined || shortest_path.length == 0){
@@ -2750,87 +2047,8 @@ exports.play = function*(screen){
         shortest_path = astar.search(diamonds_1_graph, start, end);
         res_graph = diamonds_1_graph;
       }
-
-      // let res_str = "";
-      // if (shortest_path.length > 0){
-      //   shortest_path.forEach(function(step) {
-      //     res_str += step.x + "," + step.y + " ";
-      //   }, this);
-      // }
-      // console.log("\n\n" + res_str + "                                       ");
-
-      //TODO: подумать о том, чтобы стоять и ждать
-
-
-        // if (shortest_path != undefined && shortest_path.length > 0 && prev_kill_stone != undefined && 
-      //   prev_kill_stone.butt_x == min_kill_stone.butt_x && prev_kill_stone.butt_y == min_kill_stone.butt_y){
-      //     if (shortest_path.length < prev_path.length){
-      //       is_waiting = true;
-      //     }
-      //     shortest_path = prev_path;
-      //     prev_kill_stone = min_kill_stone;
-      //  }
-
-      // let bp = butt_pathes[min_kill_stone.butt_pathes_index];
-      // let next_step_graph_0 = init_graph(screen, self, 0);
-      // let next_step_graph_1 = init_graph(screen, self, 1);
-
-      // let next_step_path = [];
-      // for (let i = 1; i < butt_pathes.length; ++i){
-      //   next_step_path.push(bp[i]);
-      // }
-      // next_step_path.push(bp[0]);
-      // let next_step_pathes = [];
-      // for (let i = 0; i < butt_pathes.length;++i){
-      //   if (i == min_kill_stone.butt_pathes_index){
-      //     next_step_pathes.push(next_step_path);
-      //   }
-      //   else{
-      //     next_step_pathes.push(butt_pathes[i]);
-      //   }
-      // }
-
-      // set_movable_stones_weight(screen, self, next_step_graph_0);   
-      // set_movable_stones_weight(screen, self, next_step_graph_1);         
-
-      // set_trap_diamonds(diamonds, screen, next_step_graph_0); 
-      // set_trap_diamonds(diamonds, screen, next_step_graph_1); 
-
-      // set_exploded_butts_weight(next_step_graph_0);
-      // set_exploded_butts_weight(next_step_graph_1);
-      
-      // afraid_of_explotion(butt_pathes, falling_stones, self, next_step_graph_0);    
-      // afraid_of_explotion(butt_pathes, falling_stones, self, next_step_graph_1);    
-
-      // afraid_of_butterfly(next_step_pathes, next_step_graph_0, self);
-      // afraid_of_butterfly(next_step_pathes, next_step_graph_1, self);
-
-    
-
-      // end = next_step_graph_0.grid[min_kill_stone.stone.butt_x][min_kill_stone.stone.butt_y];
-      // end.weight = 1;
-
-      // //console.log("\nend: " + end.x + " " + end.y + "                                               ");
-      // let next_step_shortest_path = astar.search(next_step_graph_0, start, end);
-      // if (next_step_shortest_path == undefined || next_step_shortest_path.length == 0){
-      //   end = next_step_graph_1.grid[min_kill_stone.stone.butt_x][min_kill_stone.stone.butt_y];
-      //   end.weight = 1;
-      //   next_step_shortest_path = astar.search(next_step_graph_1, start, end);
-      // }
-
-      // if (next_step_shortest_path != undefined && next_step_shortest_path.length > 0 &&
-      //   next_step_shortest_path.length < shortest_path.length){
-      //     is_waiting = true;
-      //   }
-     
-    }
-
-    // if (is_waiting){      
-    //   yield '';
-    //   continue;
-    // }
-
-    
+   
+    } 
 
 
     //потом открываем закрытых бабочек
@@ -2904,23 +2122,12 @@ exports.play = function*(screen){
         }
       }
 
-      if (shortest_path != undefined){
-         console.log("\n\nОткрываем БАБОЧКУ" +shortest_path[shortest_path.length-1].x + "," +
-         shortest_path[shortest_path.length-1].y +  "                                                ");
-      }
-
-
-
-
-
-      //TODO: доработать
-      // shortest_path = get_butts_change_path_path(butt_pathes, diamonds_0_graph, screen, self);
-      // if (shortest_path == undefined || shortest_path.length == 0){
-      //   shortest_path = get_butts_change_path_path(butt_pathes, diamonds_1_graph, screen, self);
+      // if (shortest_path != undefined){
+      //    console.log("\n\nОткрываем БАБОЧКУ" +shortest_path[shortest_path.length-1].x + "," +
+      //    shortest_path[shortest_path.length-1].y +  "                                                ");
       // }
-     
-     
-      
+
+
     }
     
     
@@ -2931,12 +2138,10 @@ exports.play = function*(screen){
       //console.log("\n\nАЛМАЗЫ                                                ")
       
       let ok_diamonds = get_ok_targets(diamonds, self, diamonds_1_graph, falling_stones);
-      //console.log("\n\n" + diamonds.length);
-
+   
       if (ok_diamonds.length >= 2){
-        shortest_path = get_path(diamonds, ok_diamonds, self, screen, diamonds_1_graph);      
+        shortest_path = get_path(diamonds, ok_diamonds, self, screen, diamonds_1_graph, butt_pathes);      
         res_graph = diamonds_1_graph;    
-        //console.log("\n\n" + shortest_path[shortest_path.length - 1].x + " " + shortest_path[shortest_path.length - 1].y);    
       }
       else if(ok_diamonds.length == 1){
         let ok_diamond = ok_diamonds[0];
@@ -2949,9 +2154,8 @@ exports.play = function*(screen){
         ok_diamonds = get_ok_targets(diamonds, self, diamonds_1_graph, falling_stones);
      
         if (ok_diamonds.length >= 2){
-          shortest_path = get_path(diamonds, ok_diamonds, self, screen, diamonds_1_graph);      
+          shortest_path = get_path(diamonds, ok_diamonds, self, screen, diamonds_1_graph, butt_pathes);      
           res_graph = diamonds_1_graph;    
-          //console.log("\n\n" + shortest_path[shortest_path.length - 1].x + " " + shortest_path[shortest_path.length - 1].y);    
         }
         else if(ok_diamonds.length == 1){
           let ok_diamond = ok_diamonds[0];
@@ -2966,25 +2170,26 @@ exports.play = function*(screen){
          
     //если есть падающие камни, идем в левый верхний угол
     
-    if ((shortest_path == undefined || shortest_path.length == 0) && diamonds.length > 0) {
+    if ((shortest_path == undefined || shortest_path.length == 0) 
+      && diamonds.length > 0 && falling_stones.length == 0) {
     
       // console.log("\n\nEATING DIRT                                       ");
 
-      // let dirts = find_targets(':', screen);
-      // let ok_dirts = get_ok_targets(dirts, self, diamonds_1_graph, falling_stones);
-      // if (ok_dirts.length > 0){
-      //   let start = diamonds_1_graph.grid[self.x][self.y];
-      //   let end = diamonds_1_graph.grid[ok_dirts[0].x][ok_dirts[0].y];
-      //   shortest_path = astar.search(diamonds_1_graph, start, end);   
-      //   res_graph = diamonds_1_graph; 
-      // }  
+      let dirts = find_targets(':', screen);
+      let ok_dirts = get_ok_targets(dirts, self, diamonds_1_graph, falling_stones);
+      if (ok_dirts.length > 0){
+        let start = diamonds_1_graph.grid[self.x][self.y];
+        let end = diamonds_1_graph.grid[ok_dirts[0].x][ok_dirts[0].y];
+        shortest_path = astar.search(diamonds_1_graph, start, end);   
+        res_graph = diamonds_1_graph; 
+      }  
       
     }   
 
     if (shortest_path == undefined || shortest_path.length == 0) { 
 
       if(falling_stones.length > 0){
-        console.log("\n\nGO TOP                                       ");
+        //console.log("\n\nGO TOP                                       ");
       
       
         let x = 1;
@@ -3037,13 +2242,7 @@ exports.play = function*(screen){
     if (shortest_path != undefined && shortest_path.length > 0){
       shortest_path = rebuild_path(shortest_path, movebale_stones_0, res_graph, self);     
 
-      let first_step = shortest_path[0];
-      // if (shortest_path.length == 0){ //нас зажали
-      //   console.log("\nнас зажали!!!!!!!!!!!!!!");  
-      
-      //console.log(first_step);
-          
-        
+      let first_step = shortest_path[0];    
              
     
       if (first_step.y < self.y)
@@ -3053,13 +2252,12 @@ exports.play = function*(screen){
       else if (first_step.x < self.x)
         move= 'u';
       else if (first_step.x > self.x)
-        move= 'd';	
-      else throw "Strange move";      
+        move= 'd';
+      
     }
     else if (!is_staying){
-      console.log("\n\nSTAYING!!!!!!!!!!!!!!                                             ");
-      //throw "Staying";
-      
+      // console.log("\n\nSTAYING!!!!!!!!!!!!!!                                             ");
+     
       let need_move = false;
       falling_stones.forEach(function(fs) {
         let index = fs.no_way_points.findIndex(p => p.x == self.x && p.y == self.y);
@@ -3077,40 +2275,19 @@ exports.play = function*(screen){
         }
       }
 
-      // if ('*: '.includes(screen[self.x][self.y + 1])){
-      //   move='r';
-      // }
-      // else if ('*: '.includes(screen[self.x][self.y - 1])){
-      //   move='l';
-      // }
-      // else if('*: '.includes(screen[self.x+1][self.y])){
-      //   move='d';
-      // }
-      // else if ('*: '.includes(screen[self.x-1][self.y])){
-      //   move='u';
-      // }
     }
     else {
       
-      console.log("\n\nNO NEED TO FIND WAY                                      ");
+      // console.log("\n\nNO NEED TO FIND WAY                                      ");
       
     }
   
-    yield move;
-    
+    yield move;  
 
     
-    // console.clear();
-
-    // console.log("/n");
-    // console.log(move);
-
-    // for (let i=0; i < result.length; ++i){
-    //   console.log(result[i].x +" " + result[i].y);
-    // }
-        
+   
       
-    }
+  }
 };
 
 
@@ -3935,40 +3112,6 @@ let counter = 0;
 let prev_kill_stone = undefined;
 let prev_path = undefined;
 
-
-
-
-//  var screen = 
-//  ["A     ", 
-//   " :::: ",
-//   " :/ : ",
-//   " :: : ",
-//   "   + *"]; 
-
-// var screen =  ["########################################",
-//         "#:+   :*  :+::  +:O:O::++:: *  ::+  :++#",
-//         "# :+::  + ::O::O:: : :::O+ :: :::*:: O+#",
-//         "#:::::::::/  :O:*::O:::+O*O:O:+:: :O  :#",
-//         "#:* ::O:+   ::::::  ::::* +: *+: * :O: #",
-//         "#:++  ::::+* ::O/ +:+   O * *::   : ++:#",
-//         "#O ::+*:+:+O :::  O:+:: :::* :*O:O ::::#",
-//         "#: :::O:::::: :: : O  * :+ :: + : ::O: #",
-//         "#:+O+::+:+:: :::++::: ::O::::+:+O  :+::#",
-//         "#::::::::O:O*: ::OO::O::  O++::+:    +*#",
-//         "#O:OO+: ::OOO*:++:O+::::*:*: : :::+ :: #",
-//         "#  : :*::+  O::O :::::  +O*  :: :+ ::  #",
-//         "# *::+::: : O: ::+::  :O :: :O+:::+:: *#",
-//         "#:: +:O: O:+:+ :: : *:: :O::::  :::::OO#",
-//         "#:::O:+:::*::+:: :O* ::O O  : ::*++* : #",
-//         "#+:*:O: ::  :::+: O: ::**:O + : :+:O:O:#",
-//         "#+:* : ::O:++: *::+: :: ++ :+::+::*:OO:#",
-//         "# : :: :: :O :::   *:  :O: ::: ::O: +: #",
-//         "#::*:  ::O++:: ::O+::O  :::: :::::::O::#",
-//         "#O+ O+ : O::O:::*:  O: :/ :*: ::::  :++#",
-//         "#::+:++::O + O:: :: +O+    :::A   :: ::#",
-//         "########################################"];
- 
-//  play(screen);
 
 
 
