@@ -1814,6 +1814,11 @@ exports.play = function*(screen){
       if (bd_index == -1) bd_index = 1;
 
       let bd = butt_dirs[bd_index];
+
+      // if (bd === undefined){
+      //   throw "sdfsdf";
+      //   console.log("BUG");
+      // }
       
       get_butt_path({x: butt.x, y: butt.y, dir: bd.dir}, screen, b_path, falling_stones);     
 
